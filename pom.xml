@@ -60,7 +60,7 @@
         <assertj-core.version>3.27.7</assertj-core.version>
 
         <!-- dependencies -->
-        <jd3.version>3.7.1</jd3.version>
+        <jd3.version>3.8.0</jd3.version>
 
         <!-- plugins -->
         <appassembler-maven-plugin.version>2.1.0</appassembler-maven-plugin.version>
