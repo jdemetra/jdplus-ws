@@ -7,27 +7,27 @@ import "jdplus/main/ws/toolkit_messages.proto";
 service TsFunctions {
 
   /* Compute (y-mean(y))/stdev(y) */
-  rpc Normalize(TsFunctionInput) returns (TsFunctionOutput);
-  rpc NormalizeStream(stream TsFunctionInput) returns (stream TsFunctionOutput);
+  rpc Normalize(TsFunctionInputDto) returns (TsFunctionOutputDto);
+  rpc NormalizeStream(stream TsFunctionInputDto) returns (stream TsFunctionOutputDto);
 
   /* Basic descriptive statistics */
-  rpc Statistics(TsFunctionInput) returns (DescriptiveStatistics);
-  rpc StatisticsStream(stream TsFunctionInput) returns (stream DescriptiveStatistics);
+  rpc Statistics(TsFunctionInputDto) returns (DescriptiveStatisticsDto);
+  rpc StatisticsStream(stream TsFunctionInputDto) returns (stream DescriptiveStatisticsDto);
 
-  rpc Pct(PctInput) returns (TsFunctionOutput);
-  rpc PctStream(stream PctInput) returns (stream TsFunctionOutput);
+  rpc Pct(PctInputDto) returns (TsFunctionOutputDto);
+  rpc PctStream(stream PctInputDto) returns (stream TsFunctionOutputDto);
 
-  rpc Delta(DeltaInput) returns (TsFunctionOutput);
-  rpc DeltaStream(stream DeltaInput) returns (stream TsFunctionOutput);
+  rpc Delta(DeltaInputDto) returns (TsFunctionOutputDto);
+  rpc DeltaStream(stream DeltaInputDto) returns (stream TsFunctionOutputDto);
 
-  rpc Aggregate(AggregationInput) returns (TsFunctionOutput);
-  rpc AggregateStream(stream AggregationInput) returns (stream TsFunctionOutput);
+  rpc Aggregate(AggregationInputDto) returns (TsFunctionOutputDto);
+  rpc AggregateStream(stream AggregationInputDto) returns (stream TsFunctionOutputDto);
 
-  rpc HodrickPrescott(HodrickPrescottInput) returns (HodrickPrescottOutput);
-  rpc HodrickPrescottStream(stream HodrickPrescottInput) returns (stream HodrickPrescottOutput);
+  rpc HodrickPrescott(HodrickPrescottInputDto) returns (HodrickPrescottOutputDto);
+  rpc HodrickPrescottStream(stream HodrickPrescottInputDto) returns (stream HodrickPrescottOutputDto);
 
-  rpc BuildTsData(BuildTsDataInput) returns (TsFunctionOutput);
-  rpc BuildTsDataStream(stream BuildTsDataInput) returns (stream TsFunctionOutput);
+  rpc BuildTsData(BuildTsDataInputDto) returns (TsFunctionOutputDto);
+  rpc BuildTsDataStream(stream BuildTsDataInputDto) returns (stream TsFunctionOutputDto);
 
-  rpc BuildTsDataTable(BuildTsDataTableInput) returns (BuildTsDataTableOutput);
+  rpc BuildTsDataTable(BuildTsDataTableInputDto) returns (BuildTsDataTableOutputDto);
 }
