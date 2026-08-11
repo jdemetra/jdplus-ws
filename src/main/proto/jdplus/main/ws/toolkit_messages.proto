@@ -238,3 +238,136 @@ message BuildTsDataTableOutputDto {
   TsMatrixDto matrix = 2;
   repeated ValueStatus statuses = 3;
 }
+
+message TemporalDisaggregationResultsDto {
+  TsDataDto originalSeries = 1;
+  TsDomainDto disaggregationDomain = 2;
+  // Regression variables
+  repeated TsVariableDto indicators = 3;
+  // Regression estimation. The order correspond to the order of the variables.
+  int32 hyperParametersCount = 4;
+  DiffuseConcentratedLikelihoodDto likelihood = 5;
+  DiffuseLikelihoodStatisticsDto stats = 6;
+  ObjectiveFunctionPointDto maximum = 7;
+  ResidualsDiagnosticsDto residualsDiagnostics = 8;
+  TsDataDto disaggregatedSeries = 9;
+  TsDataDto stDevDisaggregatedSeries = 10;
+  TsDataDto regressionEffects = 11;
+}
+
+message DiffuseConcentratedLikelihoodDto {
+  double ll = 1;
+  double ssqerr = 2;
+  double ldet = 3;
+  double lddet = 4;
+  int32 nobs = 5;
+  int32 nd = 6;
+  int32 nxd = 7;
+  repeated double res = 8;
+  repeated double b = 9;
+  MatrixDto bvar = 10;
+  bool legacy = 11;
+  bool scalingFactor = 12 ;
+}
+
+message TsVariableDto {
+  string name = 1;
+  string id = 2;
+  int32 lag = 3;
+  ParameterDto coefficient = 4;
+  map<string, string> metadata = 5;
+}
+
+enum ParameterType{
+  // Similar to null
+  PARAMETER_UNUSED = 0;
+  // Parameter is used but not defined (to be estimated)
+  PARAMETER_UNDEFINED = 1;
+  PARAMETER_FIXED = 2;
+  PARAMETER_INITIAL = 3;
+  PARAMETER_ESTIMATED = 4;
+}
+
+message ParameterDto {
+  double value = 1;
+  ParameterType type = 2;
+  string description = 3;
+}
+
+message DiffuseLikelihoodStatisticsDto {
+  int32 nobs = 1;
+  int32 ndiffuse = 2;
+  int32 nparams = 3;
+  int32 degrees_of_freedom = 4;
+  double log_likelihood = 5;
+  double adjusted_log_likelihood = 6;
+  double aic = 7;
+  double aicc = 8;
+  double bic = 9;
+  double ssq = 13;
+  double ssqerr = 14;
+  double ldet = 15;
+  double dcorrection = 16;
+}
+
+message TsDomainDto {
+  TsPeriodDto startPeriod = 1;
+  int32 length = 2;
+}
+
+message ObjectiveFunctionPointDto {
+  double value = 1;
+  repeated double parameters = 2;
+  repeated double gradient = 3;
+  MatrixDto hessian = 4;
+}
+
+message ResidualsDiagnosticsDto {
+  TsDataDto fullResiduals = 1;
+  NiidTestsDto niid = 2;
+}
+
+message NiidTestsDto {
+  /* Normality */
+  StatisticalTestDto mean = 1;
+  StatisticalTestDto skewness = 2;
+  StatisticalTestDto kurtosis = 3;
+  StatisticalTestDto doornik_hansen = 4;
+
+  /* Independence */
+  StatisticalTestDto ljung_box = 5;
+  StatisticalTestDto box_pierce = 6;
+  StatisticalTestDto seasonal_ljung_box = 7;
+  StatisticalTestDto seasonal_box_pierce = 8;
+
+  /* Randomness */
+  StatisticalTestDto runs_number = 9;
+  StatisticalTestDto runs_length = 10;
+  StatisticalTestDto up_down_runs_number = 11;
+  StatisticalTestDto up_down_runs_length = 12;
+
+  /* Linearity */
+  StatisticalTestDto ljung_box_on_squares = 13;
+  StatisticalTestDto box_pierce_on_squares = 14;
+}
+
+message StatisticalTestDto{
+  double value = 1;
+  double pValue = 2;
+  string description = 3;
+}
+
+message TemporalDisaggregationRequestDto {
+  TsDataDto y = 1;
+  bool constant = 2;
+  bool trend = 3;
+  repeated TsDataDto indicators = 4;
+  string model = 5;
+  bool average = 6;
+  double rho = 7;
+  bool fixedRho = 8;
+  double truncatedRho = 9;
+  bool zeroInit = 10;
+  string algorithm = 11;
+  bool diffuserEgs = 12;
+}

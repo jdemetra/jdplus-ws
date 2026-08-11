@@ -213,4 +213,10 @@ public class TsFunctionsService implements TsFunctions {
     public Uni<ToolkitMessages.BuildTsDataTableOutputDto> buildTsDataTable(ToolkitMessages.BuildTsDataTableInputDto request) {
         return Uni.createFrom().item(Helpers.buildTsDataTable(request));
     }
+
+    @Override
+    public Uni<ToolkitMessages.TemporalDisaggregationResultsDto> processTemporalDisaggregation(ToolkitMessages.TemporalDisaggregationRequestDto request) {
+        // TODO: implement disaggregation method
+        return null;
+    }
 }
