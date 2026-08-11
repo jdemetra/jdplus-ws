@@ -64,8 +64,8 @@ class Converters {
         };
     }
 
-    public static ToolkitMessages.TsPeriod fromTsPeriod(TsPeriod value) {
-        return ToolkitMessages.TsPeriod
+    public static ToolkitMessages.TsPeriodDto fromTsPeriod(TsPeriod value) {
+        return ToolkitMessages.TsPeriodDto
                 .newBuilder()
                 .setFrequency(fromTsUnit(value.getUnit()))
                 .setYear(value.year())
@@ -73,7 +73,7 @@ class Converters {
                 .build();
     }
 
-    public static TsPeriod toTsPeriod(ToolkitMessages.TsPeriod value) {
+    public static TsPeriod toTsPeriod(ToolkitMessages.TsPeriodDto value) {
         TsUnit unit = toTsUnit(value.getFrequency());
         return TsPeriod.of(
                 unit,
@@ -89,15 +89,15 @@ class Converters {
         return DoubleSeq.onMapping(value.size(), value::get);
     }
 
-    public static ToolkitMessages.TsData fromTsData(TsData value) {
-        return ToolkitMessages.TsData
+    public static ToolkitMessages.TsDataDto fromTsData(TsData value) {
+        return ToolkitMessages.TsDataDto
                 .newBuilder()
                 .setStart(fromTsPeriod(value.getStart()))
                 .addAllValues(fromValues(value.getValues()))
                 .build();
     }
 
-    public static TsData toTsData(ToolkitMessages.TsData value) {
+    public static TsData toTsData(ToolkitMessages.TsDataDto value) {
         return TsData.of(
                 toTsPeriod(value.getStart()),
                 toValues(value.getValuesList())
@@ -130,8 +130,8 @@ class Converters {
         };
     }
 
-    public static ToolkitMessages.ObsGathering fromObsGathering(ObsGathering value) {
-        return ToolkitMessages.ObsGathering
+    public static ToolkitMessages.ObsGatheringDto fromObsGathering(ObsGathering value) {
+        return ToolkitMessages.ObsGatheringDto
                 .newBuilder()
                 .setFrequency(fromTsUnit(value.getUnit()))
                 .setAggregationType(fromAggregationType(value.getAggregationType()))
@@ -140,7 +140,7 @@ class Converters {
                 .build();
     }
 
-    public static ObsGathering toObsGathering(ToolkitMessages.ObsGathering value) {
+    public static ObsGathering toObsGathering(ToolkitMessages.ObsGatheringDto value) {
         return ObsGathering
                 .builder()
                 .unit(toTsUnit(value.getFrequency()))
@@ -150,8 +150,8 @@ class Converters {
                 .build();
     }
 
-    public static ToolkitMessages.Date fromLocalDate(LocalDate value) {
-        return ToolkitMessages.Date
+    public static ToolkitMessages.DateDto fromLocalDate(LocalDate value) {
+        return ToolkitMessages.DateDto
                 .newBuilder()
                 .setYear(value.getYear())
                 .setMonth(value.getMonthValue())
@@ -159,7 +159,7 @@ class Converters {
                 .build();
     }
 
-    public static LocalDate toLocalDate(ToolkitMessages.Date value) {
+    public static LocalDate toLocalDate(ToolkitMessages.DateDto value) {
         return LocalDate.of(value.getYear(), value.getMonth(), value.getDay());
     }
 
@@ -201,8 +201,8 @@ class Converters {
         };
     }
 
-    public static ToolkitMessages.Matrix fromMatrix(jdplus.toolkit.base.api.math.matrices.Matrix value) {
-        ToolkitMessages.Matrix.Builder result = ToolkitMessages.Matrix
+    public static ToolkitMessages.MatrixDto fromMatrix(jdplus.toolkit.base.api.math.matrices.Matrix value) {
+        ToolkitMessages.MatrixDto.Builder result = ToolkitMessages.MatrixDto
                 .newBuilder()
                 .setNrows(value.getRowsCount())
                 .setNcols(value.getColumnsCount());

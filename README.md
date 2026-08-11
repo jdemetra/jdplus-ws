@@ -46,14 +46,14 @@ Every operation is also available as a streaming variant (`*Stream`).
 
 | RPC                | Input                   | Output                   | Description                                                          |
 |--------------------|-------------------------|--------------------------|----------------------------------------------------------------------|
-| `Normalize`        | `TsFunctionInput`       | `TsFunctionOutput`       | Standardizes the series: `(y − mean) / stdev`                        |
-| `Statistics`       | `TsFunctionInput`       | `DescriptiveStatistics`  | Basic descriptive statistics (n, min, max, mean, stdev, quartiles)   |
-| `Pct`              | `PctInput`              | `TsFunctionOutput`       | Percentage change: `(y[t] / y[t−lag] − 1) × 100`                     |
-| `Delta`            | `DeltaInput`            | `TsFunctionOutput`       | Difference operator applied *power* times: `y[t] − y[t−lag]`         |
-| `Aggregate`        | `AggregationInput`      | `TsFunctionOutput`       | Frequency conversion (sum, average, first, last, min, max)           |
-| `HodrickPrescott`  | `HodrickPrescottInput`  | `HodrickPrescottOutput`  | Hodrick–Prescott filter (returns trend and noise components)         |
-| `BuildTsData`      | `BuildTsDataInput`      | `TsFunctionOutput`       | Converts a list of dated observations into a regular `TsData` series |
-| `BuildTsDataTable` | `BuildTsDataTableInput` | `BuildTsDataTableOutput` | Aligns a collection of `TsData` series into a matrix                 |
+| `Normalize`        | `TsFunctionInputDto`       | `TsFunctionOutputDto`       | Standardizes the series: `(y − mean) / stdev`                        |
+| `Statistics`       | `TsFunctionInputDto`       | `DescriptiveStatisticsDto`  | Basic descriptive statistics (n, min, max, mean, stdev, quartiles)   |
+| `Pct`              | `PctInputDto`              | `TsFunctionOutputDto`       | Percentage change: `(y[t] / y[t−lag] − 1) × 100`                     |
+| `Delta`            | `DeltaInputDto`            | `TsFunctionOutputDto`       | Difference operator applied *power* times: `y[t] − y[t−lag]`         |
+| `Aggregate`        | `AggregationInputDto`      | `TsFunctionOutputDto`       | Frequency conversion (sum, average, first, last, min, max)           |
+| `HodrickPrescott`  | `HodrickPrescottInputDto`  | `HodrickPrescottOutputDto`  | Hodrick–Prescott filter (returns trend and noise components)         |
+| `BuildTsData`      | `BuildTsDataInputDto`      | `TsFunctionOutputDto`       | Converts a list of dated observations into a regular `TsDataDto` series |
+| `BuildTsDataTable` | `BuildTsDataTableInputDto` | `BuildTsDataTableOutputDto` | Aligns a collection of `TsDataDto` series into a matrix                 |
 
 Supported frequencies: `FREQ_YEARLY`, `FREQ_HALF_YEARLY`, `FREQ_QUADRI_MONTHLY`, `FREQ_QUARTERLY`, `FREQ_BI_MONTHLY`, `FREQ_MONTHLY`, `FREQ_DAILY`.
 

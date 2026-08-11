@@ -23,24 +23,24 @@ import static jdplus.main.ws.Converters.*;
 
 class Helpers {
 
-    static ToolkitMessages.ResultStatus ok() {
-        return ToolkitMessages.ResultStatus
+    static ToolkitMessages.ResultStatusDto ok() {
+        return ToolkitMessages.ResultStatusDto
                 .newBuilder()
                 .setType(ToolkitMessages.ResultStatusType.STATUS_OK)
                 .setMessage("")
                 .build();
     }
 
-    static ToolkitMessages.ResultStatus ko(String message) {
-        return ToolkitMessages.ResultStatus
+    static ToolkitMessages.ResultStatusDto ko(String message) {
+        return ToolkitMessages.ResultStatusDto
                 .newBuilder()
                 .setType(ToolkitMessages.ResultStatusType.STATUS_ERROR)
                 .setMessage(message)
                 .build();
     }
 
-    static ToolkitMessages.TsFunctionOutput normalize(ToolkitMessages.TsFunctionInput input) {
-        return ToolkitMessages.TsFunctionOutput
+    static ToolkitMessages.TsFunctionOutputDto normalize(ToolkitMessages.TsFunctionInputDto input) {
+        return ToolkitMessages.TsFunctionOutputDto
                 .newBuilder()
                 .setId(input.getId())
                 .setStatus(ok())
@@ -48,10 +48,10 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.DescriptiveStatistics statistics(ToolkitMessages.TsFunctionInput input) {
+    static ToolkitMessages.DescriptiveStatisticsDto statistics(ToolkitMessages.TsFunctionInputDto input) {
         DescriptiveStatistics value = DescriptiveStatistics.of(toTsData(input.getSeries()).getValues());
         double[] quantiles = value.quantiles(4);
-        return ToolkitMessages.DescriptiveStatistics
+        return ToolkitMessages.DescriptiveStatisticsDto
                 .newBuilder()
                 .setId(input.getId())
                 .setStatus(ok())
@@ -67,8 +67,8 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.TsFunctionOutput pct(ToolkitMessages.PctInput input) {
-        return ToolkitMessages.TsFunctionOutput
+    static ToolkitMessages.TsFunctionOutputDto pct(ToolkitMessages.PctInputDto input) {
+        return ToolkitMessages.TsFunctionOutputDto
                 .newBuilder()
                 .setId(input.getId())
                 .setStatus(ok())
@@ -76,8 +76,8 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.TsFunctionOutput delta(ToolkitMessages.DeltaInput input) {
-        return ToolkitMessages.TsFunctionOutput
+    static ToolkitMessages.TsFunctionOutputDto delta(ToolkitMessages.DeltaInputDto input) {
+        return ToolkitMessages.TsFunctionOutputDto
                 .newBuilder()
                 .setId(input.getId())
                 .setStatus(ok())
@@ -85,9 +85,9 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.TsFunctionOutput aggregate(ToolkitMessages.AggregationInput input) {
+    static ToolkitMessages.TsFunctionOutputDto aggregate(ToolkitMessages.AggregationInputDto input) {
         TsData result = toTsData(input.getSeries()).aggregate(toTsUnit(input.getNewFrequency()), toAggregationType(input.getAggregationType()), input.getComplete());
-        return ToolkitMessages.TsFunctionOutput
+        return ToolkitMessages.TsFunctionOutputDto
                 .newBuilder()
                 .setId(input.getId())
                 .setStatus(ok())
@@ -95,7 +95,7 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.HodrickPrescottOutput hodrickPrescott(ToolkitMessages.HodrickPrescottInput input) {
+    static ToolkitMessages.HodrickPrescottOutputDto hodrickPrescott(ToolkitMessages.HodrickPrescottInputDto input) {
         TsData s = toTsData(input.getSeries());
 
         ArimaModel rw2 = new ArimaModel(BackFilter.ONE, BackFilter.ofInternal(1, -2, 1), BackFilter.ONE, 1);
@@ -117,7 +117,7 @@ class Helpers {
         TsData trend = TsData.of(s.getStart(), rslts.getComponent(pos[0]));
         TsData noise = TsData.of(s.getStart(), rslts.getComponent(pos[1]));
 
-        return ToolkitMessages.HodrickPrescottOutput
+        return ToolkitMessages.HodrickPrescottOutputDto
                 .newBuilder()
                 .setId(input.getId())
                 .setStatus(ok())
@@ -126,12 +126,12 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.TsFunctionOutput buildTsData(ToolkitMessages.BuildTsDataInput request) {
+    static ToolkitMessages.TsFunctionOutputDto buildTsData(ToolkitMessages.BuildTsDataInputDto request) {
         TsDataBuilder<LocalDate> builder = TsDataBuilder.byDate(toObsGathering(request.getGathering()));
         request.getObservationsList().forEach(obs -> builder.add(toLocalDate(obs.getDate()), obs.getValue()));
         TsData result = builder.build();
 
-        return ToolkitMessages.TsFunctionOutput
+        return ToolkitMessages.TsFunctionOutputDto
                 .newBuilder()
                 .setId(request.getId())
                 .setStatus(result.isEmpty() ? ko(result.getEmptyCause()) : ok())
@@ -139,7 +139,7 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.BuildTsDataTableOutput buildTsDataTable(ToolkitMessages.BuildTsDataTableInput request) {
+    static ToolkitMessages.BuildTsDataTableOutputDto buildTsDataTable(ToolkitMessages.BuildTsDataTableInputDto request) {
         TsDataTable result = TsDataTable.of(request.getCollectionList(), Converters::toTsData);
 
         TsDataTable.Cursor cursor = result.cursor(toDistributionType(request.getDistributionType()));
@@ -153,7 +153,7 @@ class Helpers {
             }
         }
 
-        ToolkitMessages.TsMatrix tsMatrix = ToolkitMessages.TsMatrix
+        ToolkitMessages.TsMatrixDto tsMatrix = ToolkitMessages.TsMatrixDto
                 .newBuilder()
                 .setStart(fromTsPeriod(result.getDomain().getStartPeriod()))
                 .setValues(fromMatrix(matrix))
@@ -162,7 +162,7 @@ class Helpers {
         ToolkitMessages.ValueStatus[] buffer = new ToolkitMessages.ValueStatus[statuses.getRowsCount() * statuses.getColumnsCount()];
         statuses.copyTo(buffer);
 
-        return ToolkitMessages.BuildTsDataTableOutput
+        return ToolkitMessages.BuildTsDataTableOutputDto
                 .newBuilder()
                 .setId(request.getId())
                 .setMatrix(tsMatrix)

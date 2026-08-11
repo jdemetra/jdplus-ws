@@ -44,7 +44,7 @@ public class TsFunctionsService implements TsFunctions {
     @POST
     @Path("/normalize")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutput> normalize(ToolkitMessages.TsFunctionInput request) {
+    public Uni<ToolkitMessages.TsFunctionOutputDto> normalize(ToolkitMessages.TsFunctionInputDto request) {
         return Uni.createFrom().item(Helpers.normalize(request));
     }
 
@@ -71,35 +71,35 @@ public class TsFunctionsService implements TsFunctions {
     @POST
     @Path("/statistics")
     @Override
-    public Uni<ToolkitMessages.DescriptiveStatistics> statistics(ToolkitMessages.TsFunctionInput request) {
+    public Uni<ToolkitMessages.DescriptiveStatisticsDto> statistics(ToolkitMessages.TsFunctionInputDto request) {
         return Uni.createFrom().item(Helpers.statistics(request));
     }
 
     @POST
     @Path("/pct")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutput> pct(ToolkitMessages.PctInput request) {
+    public Uni<ToolkitMessages.TsFunctionOutputDto> pct(ToolkitMessages.PctInputDto request) {
         return Uni.createFrom().item(Helpers.pct(request));
     }
 
     @POST
     @Path("/delta")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutput> delta(ToolkitMessages.DeltaInput request) {
+    public Uni<ToolkitMessages.TsFunctionOutputDto> delta(ToolkitMessages.DeltaInputDto request) {
         return Uni.createFrom().item(Helpers.delta(request));
     }
 
     @POST
     @Path("/aggregate")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutput> aggregate(ToolkitMessages.AggregationInput request) {
+    public Uni<ToolkitMessages.TsFunctionOutputDto> aggregate(ToolkitMessages.AggregationInputDto request) {
         return Uni.createFrom().item(Helpers.aggregate(request));
     }
 
     @POST
     @Path("/hodrickPrescott")
     @Override
-    public Uni<ToolkitMessages.HodrickPrescottOutput> hodrickPrescott(ToolkitMessages.HodrickPrescottInput request) {
+    public Uni<ToolkitMessages.HodrickPrescottOutputDto> hodrickPrescott(ToolkitMessages.HodrickPrescottInputDto request) {
         return Uni.createFrom().item(Helpers.hodrickPrescott(request));
     }
 
@@ -134,42 +134,42 @@ public class TsFunctionsService implements TsFunctions {
     @POST
     @Path("/buildTsData")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutput> buildTsData(ToolkitMessages.BuildTsDataInput request) {
+    public Uni<ToolkitMessages.TsFunctionOutputDto> buildTsData(ToolkitMessages.BuildTsDataInputDto request) {
         return Uni.createFrom().item(Helpers.buildTsData(request));
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutput> normalizeStream(Multi<ToolkitMessages.TsFunctionInput> request) {
+    public Multi<ToolkitMessages.TsFunctionOutputDto> normalizeStream(Multi<ToolkitMessages.TsFunctionInputDto> request) {
         return request.onItem().transform(Helpers::normalize);
     }
 
     @Override
-    public Multi<ToolkitMessages.DescriptiveStatistics> statisticsStream(Multi<ToolkitMessages.TsFunctionInput> request) {
+    public Multi<ToolkitMessages.DescriptiveStatisticsDto> statisticsStream(Multi<ToolkitMessages.TsFunctionInputDto> request) {
         return request.onItem().transform(Helpers::statistics);
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutput> pctStream(Multi<ToolkitMessages.PctInput> request) {
+    public Multi<ToolkitMessages.TsFunctionOutputDto> pctStream(Multi<ToolkitMessages.PctInputDto> request) {
         return request.onItem().transform(Helpers::pct);
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutput> deltaStream(Multi<ToolkitMessages.DeltaInput> request) {
+    public Multi<ToolkitMessages.TsFunctionOutputDto> deltaStream(Multi<ToolkitMessages.DeltaInputDto> request) {
         return request.onItem().transform(Helpers::delta);
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutput> aggregateStream(Multi<ToolkitMessages.AggregationInput> request) {
+    public Multi<ToolkitMessages.TsFunctionOutputDto> aggregateStream(Multi<ToolkitMessages.AggregationInputDto> request) {
         return request.onItem().transform(Helpers::aggregate);
     }
 
     @Override
-    public Multi<ToolkitMessages.HodrickPrescottOutput> hodrickPrescottStream(Multi<ToolkitMessages.HodrickPrescottInput> request) {
+    public Multi<ToolkitMessages.HodrickPrescottOutputDto> hodrickPrescottStream(Multi<ToolkitMessages.HodrickPrescottInputDto> request) {
         return request.onItem().transform(Helpers::hodrickPrescott);
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutput> buildTsDataStream(Multi<ToolkitMessages.BuildTsDataInput> request) {
+    public Multi<ToolkitMessages.TsFunctionOutputDto> buildTsDataStream(Multi<ToolkitMessages.BuildTsDataInputDto> request) {
         return request.onItem().transform(Helpers::buildTsData);
     }
 
@@ -210,7 +210,7 @@ public class TsFunctionsService implements TsFunctions {
     @POST
     @Path("/buildTsDataTable")
     @Override
-    public Uni<ToolkitMessages.BuildTsDataTableOutput> buildTsDataTable(ToolkitMessages.BuildTsDataTableInput request) {
+    public Uni<ToolkitMessages.BuildTsDataTableOutputDto> buildTsDataTable(ToolkitMessages.BuildTsDataTableInputDto request) {
         return Uni.createFrom().item(Helpers.buildTsDataTable(request));
     }
 }
