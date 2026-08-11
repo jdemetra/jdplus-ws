@@ -30,4 +30,6 @@ service TsFunctions {
   rpc BuildTsDataStream(stream BuildTsDataInputDto) returns (stream TsFunctionOutputDto);
 
   rpc BuildTsDataTable(BuildTsDataTableInputDto) returns (BuildTsDataTableOutputDto);
+
+  rpc ProcessTemporalDisaggregation(TemporalDisaggregationRequestDto) returns (TemporalDisaggregationResultsDto);
 }
