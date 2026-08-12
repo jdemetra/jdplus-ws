@@ -3,6 +3,7 @@ syntax = "proto3";
 package jdplus.main.ws.v1;
 
 option java_package = "jdplus.main.ws.v1";
+option csharp_namespace = "JDPlus.Main.WS.V1";
 
 message EmptyDto {}
 
