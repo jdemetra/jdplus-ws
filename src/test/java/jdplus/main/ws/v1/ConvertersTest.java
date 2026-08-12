@@ -1,4 +1,4 @@
-package jdplus.main.ws;
+package jdplus.main.ws.v1;
 
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;

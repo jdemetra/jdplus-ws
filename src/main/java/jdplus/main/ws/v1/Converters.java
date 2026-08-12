@@ -1,4 +1,4 @@
-package jdplus.main.ws;
+package jdplus.main.ws.v1;
 
 import jdplus.toolkit.base.api.data.AggregationType;
 import jdplus.toolkit.base.api.data.DoubleSeq;
@@ -207,6 +207,13 @@ class Converters {
                 .setNrows(value.getRowsCount())
                 .setNcols(value.getColumnsCount());
         Arrays.stream(value.toArray()).forEach(result::addValues);
+        return result.build();
+    }
+
+    public static ToolkitMessages.TemporalDisaggregationResultsDto fromTemporalDisaggregationResults(jdplus.benchmarking.base.core.univariate.TemporalDisaggregationResults value) {
+        ToolkitMessages.TemporalDisaggregationResultsDto.Builder result = ToolkitMessages.TemporalDisaggregationResultsDto
+                .newBuilder();
+        // TODO: build dto from model
         return result.build();
     }
 }

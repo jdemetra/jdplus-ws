@@ -1,4 +1,4 @@
-package jdplus.main.ws;
+package jdplus.main.ws.v1;
 
 import jdplus.toolkit.base.api.math.matrices.Matrix;
 import jdplus.toolkit.base.api.timeseries.TsData;
@@ -19,7 +19,7 @@ import jdplus.toolkit.base.core.stats.DescriptiveStatistics;
 import java.time.LocalDate;
 import java.util.Arrays;
 
-import static jdplus.main.ws.Converters.*;
+import static jdplus.main.ws.v1.Converters.*;
 
 class Helpers {
 
