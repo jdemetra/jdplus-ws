@@ -1,4 +1,4 @@
-package jdplus.main.ws;
+package jdplus.main.ws.v1;
 
 import io.quarkus.grpc.GrpcClient;
 import io.quarkus.test.junit.QuarkusTest;
@@ -13,8 +13,8 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
-import static jdplus.main.ws.Converters.*;
-import static jdplus.main.ws.ToolkitMessages.ValueStatus.*;
+import static jdplus.main.ws.v1.Converters.*;
+import static jdplus.main.ws.v1.ToolkitMessages.ValueStatus.*;
 import static java.lang.Double.NaN;
 import static jdplus.toolkit.base.api.timeseries.TsPeriod.*;
 import static org.assertj.core.api.Assertions.assertThat;

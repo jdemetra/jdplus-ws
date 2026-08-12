@@ -1,4 +1,4 @@
-package jdplus.main.ws;
+package jdplus.main.ws.v1;
 
 import io.quarkus.grpc.GrpcService;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -12,6 +12,7 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 
+
 import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
 @Path("/hello")
@@ -20,6 +21,16 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @GrpcService
 @RegisterForReflection
 public class TsFunctionsService implements TsFunctions {
+
+    @Override
+    public Uni<ToolkitMessages.VersionInfoDto> getVersion(ToolkitMessages.EmptyDto request) {
+        // TODO: improve version management
+        return Uni.createFrom().item(ToolkitMessages.VersionInfoDto.newBuilder()
+                .setMajor(0)
+                .setMinor(0)
+                .setRevision(1)
+                .build());
+    }
 
     @RequestBody(
             content = @Content(

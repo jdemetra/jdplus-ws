@@ -1,6 +1,10 @@
 syntax = "proto3";
 
-package jdplus.main.ws;
+package jdplus.main.ws.v1;
+
+option java_package = "jdplus.main.ws.v1";
+
+message EmptyDto {}
 
 /* Frequency of an event. Only regular frequencies higher or equal to yearly frequency are considered. */
 enum Frequency {
@@ -370,4 +374,10 @@ message TemporalDisaggregationRequestDto {
   bool zeroInit = 10;
   string algorithm = 11;
   bool diffuserEgs = 12;
+}
+
+message VersionInfoDto {
+  int32 major = 1;
+  int32 minor = 2;
+  int32 revision = 3;
 }
