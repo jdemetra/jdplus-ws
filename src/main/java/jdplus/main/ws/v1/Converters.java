@@ -1,12 +1,17 @@
 package jdplus.main.ws.v1;
 
+import jdplus.benchmarking.base.core.univariate.ResidualsDiagnostics;
 import jdplus.toolkit.base.api.data.AggregationType;
 import jdplus.toolkit.base.api.data.DoubleSeq;
-import jdplus.toolkit.base.api.timeseries.TsData;
-import jdplus.toolkit.base.api.timeseries.TsDataTable;
-import jdplus.toolkit.base.api.timeseries.TsPeriod;
-import jdplus.toolkit.base.api.timeseries.TsUnit;
+import jdplus.toolkit.base.api.data.Parameter;
+import jdplus.toolkit.base.api.data.ParameterType;
+import jdplus.toolkit.base.api.math.functions.ObjectiveFunctionPoint;
+import jdplus.toolkit.base.api.timeseries.*;
+import jdplus.toolkit.base.api.timeseries.regression.TsVariable;
 import jdplus.toolkit.base.api.timeseries.util.ObsGathering;
+import jdplus.toolkit.base.core.stats.likelihood.DiffuseConcentratedLikelihood;
+import jdplus.toolkit.base.core.stats.likelihood.DiffuseLikelihoodStatistics;
+import jdplus.toolkit.base.core.stats.tests.NiidTests;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -130,6 +135,16 @@ class Converters {
         };
     }
 
+    public static ToolkitMessages.ParameterType fromParameterType(ParameterType value) {
+        return switch (value) {
+            case Undefined -> ToolkitMessages.ParameterType.PARAMETER_UNDEFINED;
+            case Initial -> ToolkitMessages.ParameterType.PARAMETER_INITIAL;
+            case Fixed -> ToolkitMessages.ParameterType.PARAMETER_FIXED;
+            case Estimated -> ToolkitMessages.ParameterType.PARAMETER_ESTIMATED;
+            default -> ToolkitMessages.ParameterType.PARAMETER_UNUSED;
+        };
+    }
+
     public static ToolkitMessages.ObsGatheringDto fromObsGathering(ObsGathering value) {
         return ToolkitMessages.ObsGatheringDto
                 .newBuilder()
@@ -212,8 +227,138 @@ class Converters {
 
     public static ToolkitMessages.TemporalDisaggregationResultsDto fromTemporalDisaggregationResults(jdplus.benchmarking.base.core.univariate.TemporalDisaggregationResults value) {
         ToolkitMessages.TemporalDisaggregationResultsDto.Builder result = ToolkitMessages.TemporalDisaggregationResultsDto
-                .newBuilder();
-        // TODO: build dto from model
+                .newBuilder()
+                .setOriginalSeries(fromTsData(value.getOriginalSeries()))
+                .setDisaggregationDomain(fromTsDomain(value.getDisaggregationDomain()))
+                .setHyperParametersCount(value.getHyperParametersCount())
+                .setLikelihood(fromDiffuseConcentratedLikelihood(value.getLikelihood()))
+                .setStats(fromDiffuseLikelihoodStatistics(value.getStats()))
+                .setMaximum(fromObjectiveFunctionPoint(value.getMaximum()))
+                .setResidualsDiagnostics(fromResidualsDiagnostics(value.getResidualsDiagnostics()))
+                .setDisaggregatedSeries(fromTsData(value.getDisaggregatedSeries()))
+                .setStDevDisaggregatedSeries(fromTsData(value.getStdevDisaggregatedSeries()))
+                .setRegressionEffects(fromTsData(value.getRegressionEffects()));
+
+        // TODO: indicators
+//        Arrays.stream(value.getIndicators())
+//                .forEach(indicator -> result.addIndicators(fromTsVariable(indicator)));
+        return result.build();
+    }
+
+    public static ToolkitMessages.DiffuseConcentratedLikelihoodDto fromDiffuseConcentratedLikelihood(DiffuseConcentratedLikelihood value)
+        {
+        ToolkitMessages.DiffuseConcentratedLikelihoodDto.Builder result = ToolkitMessages.DiffuseConcentratedLikelihoodDto
+                .newBuilder()
+                .setLl( value.logLikelihood())
+                .setSsqerr(value.ssq())
+                .setLdet(value.logDeterminant())
+                // TODO: .setLddet(?)
+                // TODO: .setNobs(?)
+                .setNd(value.ndiffuse())
+                .setNxd(value.nx()) // ?
+                // TODO: .setBvar(?)
+                // TODO: .setLegacy(?)
+                .setScalingFactor(value.isScalingFactor())
+                ;
+        
+        return result.build();
+    }
+
+    public static ToolkitMessages.TsVariableDto fromTsVariable(TsVariable value) {
+        ToolkitMessages.TsVariableDto.Builder result = ToolkitMessages.TsVariableDto
+                .newBuilder()
+                // TODO: .setName(?)
+                .setId(value.getId())
+                // TODO: .setLag(?)
+                // TODO: .setCoefficient(?)
+        ;
+        return result.build();
+    }
+
+    public static ToolkitMessages.ParameterDto fromParameter(Parameter value) {
+        ToolkitMessages.ParameterDto.Builder result = ToolkitMessages.ParameterDto
+                .newBuilder()
+                .setValue(value.getValue())
+                // TODO: .setDescription(value.toString())
+                // It is set as parameter in R converter
+                .setType(fromParameterType(value.getType()));
+        return result.build();
+    }
+
+    public static ToolkitMessages.DiffuseLikelihoodStatisticsDto fromDiffuseLikelihoodStatistics(DiffuseLikelihoodStatistics value) {
+        ToolkitMessages.DiffuseLikelihoodStatisticsDto.Builder result = ToolkitMessages.DiffuseLikelihoodStatisticsDto
+                .newBuilder()
+                .setNobs(value.getObservationsCount())
+                .setNdiffuse(value.getDiffuseCount())
+                .setNparams(value.getEstimatedParametersCount())
+                .setDegreesOfFreedom(value.getObservationsCount() - value.getDiffuseCount() - value.getEstimatedParametersCount())
+                .setLogLikelihood(value.getLogLikelihood())
+                .setAdjustedLogLikelihood(value.getAdjustedLogLikelihood())
+                .setAic(value.aic())
+                .setAicc(value.aicc())
+                .setBic(value.bic())
+                .setSsq(value.getSsqErr())
+                .setLdet(value.getLogDeterminant())
+                .setDcorrection(value.getDiffuseCorrection());
+        return result.build();
+    }
+
+    public static ToolkitMessages.TsDomainDto fromTsDomain(TsDomain value) {
+        ToolkitMessages.TsDomainDto.Builder result = ToolkitMessages.TsDomainDto
+                .newBuilder()
+                .setStartPeriod(fromTsPeriod(value.getStartPeriod()))
+                .setLength(value.getLength());
+
+        return result.build();
+    }
+
+    public static ToolkitMessages.ObjectiveFunctionPointDto fromObjectiveFunctionPoint(ObjectiveFunctionPoint value) {
+        ToolkitMessages.ObjectiveFunctionPointDto.Builder result = ToolkitMessages.ObjectiveFunctionPointDto
+                .newBuilder()
+                .setValue(value.getValue())
+                .setHessian(fromMatrix(value.getHessian()));
+        Arrays.stream(value.getParameters()).forEach(result::addParameters);
+        Arrays.stream(value.getGradient()).forEach(result::addGradient);
+
+        return result.build();
+    }
+
+    public static ToolkitMessages.ResidualsDiagnosticsDto fromResidualsDiagnostics(ResidualsDiagnostics value) {
+        ToolkitMessages.ResidualsDiagnosticsDto.Builder result = ToolkitMessages.ResidualsDiagnosticsDto
+                .newBuilder()
+                .setFullResiduals(fromTsData(value.getFullResiduals()))
+                .setNiid(fromNiidTests(value.getNiid()));
+
+        return result.build();
+    }
+
+    public static ToolkitMessages.NiidTestsDto fromNiidTests(NiidTests value) {
+        ToolkitMessages.NiidTestsDto.Builder result = ToolkitMessages.NiidTestsDto
+                .newBuilder()
+                .setMean(fromStatisticalTest(value.meanTest()))
+                .setSkewness(fromStatisticalTest(value.skewness()))
+                .setKurtosis(fromStatisticalTest(value.kurtosis()))
+                .setDoornikHansen(fromStatisticalTest(value.normalityTest()))
+                .setLjungBox(fromStatisticalTest(value.ljungBox()))
+                .setBoxPierce(fromStatisticalTest(value.boxPierce()))
+                .setSeasonalLjungBox(fromStatisticalTest(value.seasonalLjungBox()))
+                .setSeasonalBoxPierce(fromStatisticalTest(value.seasonalBoxPierce()))
+                .setRunsNumber(fromStatisticalTest(value.runsNumber()))
+                .setRunsLength(fromStatisticalTest(value.runsLength()))
+                .setUpDownRunsNumber(fromStatisticalTest(value.upAndDownRunsNumbber()))
+                .setUpDownRunsLength(fromStatisticalTest(value.upAndDownRunsLength()))
+                .setLjungBoxOnSquares(fromStatisticalTest(value.ljungBoxOnSquare()))
+                .setBoxPierceOnSquares(fromStatisticalTest(value.boxPierceOnSquare()));
+
+        return result.build();
+    }
+
+    public static ToolkitMessages.StatisticalTestDto fromStatisticalTest(jdplus.toolkit.base.api.stats.StatisticalTest value) {
+        ToolkitMessages.StatisticalTestDto.Builder result = ToolkitMessages.StatisticalTestDto
+                .newBuilder()
+                .setValue(value.getValue())
+                .setPValue(value.getPvalue())
+                .setDescription(value.getDescription());
         return result.build();
     }
 }

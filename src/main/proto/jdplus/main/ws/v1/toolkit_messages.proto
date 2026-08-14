@@ -310,9 +310,12 @@ message DiffuseLikelihoodStatisticsDto {
   double aicc = 8;
   double bic = 9;
   double ssq = 13;
-  double ssqerr = 14;
+  // double ssqerr = 14;
   double ldet = 15;
   double dcorrection = 16;
+
+  reserved "ssqerr";
+  reserved 14;
 }
 
 message TsDomainDto {
