@@ -8,6 +8,7 @@ import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jdplus.benchmarking.base.api.univariate.TemporalDisaggregation;
 import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
@@ -227,7 +228,6 @@ public class TsFunctionsService implements TsFunctions {
 
     @Override
     public Uni<ToolkitMessages.TemporalDisaggregationResultsDto> processTemporalDisaggregation(ToolkitMessages.TemporalDisaggregationRequestDto request) {
-        // TODO: implement disaggregation method
-        return null;
+        return Uni.createFrom().item(Helpers.processTemporalDisaggregation(request));
     }
 }

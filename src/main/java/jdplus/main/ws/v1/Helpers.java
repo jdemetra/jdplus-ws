@@ -1,6 +1,11 @@
 package jdplus.main.ws.v1;
 
+import jdplus.benchmarking.base.api.univariate.*;
+import jdplus.benchmarking.base.core.univariate.TemporalDisaggregationProcessor;
+import jdplus.benchmarking.base.core.univariate.TemporalDisaggregationResults;
+import jdplus.toolkit.base.api.data.Parameter;
 import jdplus.toolkit.base.api.math.matrices.Matrix;
+import jdplus.toolkit.base.api.ssf.SsfInitialization;
 import jdplus.toolkit.base.api.timeseries.TsData;
 import jdplus.toolkit.base.api.timeseries.TsDataTable;
 import jdplus.toolkit.base.api.timeseries.util.TsDataBuilder;
@@ -168,5 +173,52 @@ class Helpers {
                 .setMatrix(tsMatrix)
                 .addAllStatuses(Arrays.asList(buffer))
                 .build();
+    }
+
+    static ToolkitMessages.TemporalDisaggregationResultsDto processTemporalDisaggregation(ToolkitMessages.TemporalDisaggregationRequestDto request) {
+        TsData y = Converters.toTsData(request.getY());
+        TsData[] indicators =  request.getIndicatorsList().stream().map(Converters::toTsData).toArray(TsData[]::new);
+        boolean constant = request.getConstant();
+        boolean trend = request.getTrend();
+        String model = request.getModel();
+        boolean average = request.getAverage();
+        double rho = request.getRho();
+        boolean fixedRho = request.getFixedRho();
+        double truncatedRho = request.getTruncatedRho();
+        boolean zeroInit = request.getZeroInit();
+        String algorithm = request.getAlgorithm();
+        boolean diffuserEgs = request.getDiffuserEgs();
+
+        ModelSpec mspec = ModelSpec.builder()
+                .constant(constant)
+                .trend(trend)
+                .residualsModel(ResidualsModel.valueOf(model))
+                .parameter(fixedRho ? Parameter.fixed(rho) : Parameter.initial(rho))
+                .diffuseRegressors(diffuserEgs)
+                .zeroInitialization(zeroInit)
+                .build();
+
+        TsEstimationSpec espec = TsEstimationSpec.builder()
+                .truncatedParameter(truncatedRho <= -1 ? null : truncatedRho)
+                .build();
+
+        AlgorithmSpec aspec = AlgorithmSpec.builder()
+                .algorithm(SsfInitialization.valueOf(algorithm))
+                .rescale(true)
+                .build();
+
+        TemporalDisaggregationSpec spec = TemporalDisaggregationSpec.builder()
+                .modelSpec(mspec)
+                .estimationSpec(espec)
+                .algorithmSpec(aspec)
+                .average(average)
+                .build();
+
+        for (int i = 0; i < indicators.length; ++i) {
+            indicators[i] = indicators[i].cleanExtremities();
+        }
+
+        TemporalDisaggregationResults results = TemporalDisaggregationProcessor.process(y, indicators, spec);
+        return Converters.fromTemporalDisaggregationResults(results);
     }
 }
