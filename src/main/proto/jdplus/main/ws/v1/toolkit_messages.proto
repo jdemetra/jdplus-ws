@@ -380,6 +380,7 @@ message TemporalDisaggregationRequestDto {
   bool diffuserEgs = 12;
   optional int32 n_backcasts = 13;
   optional int32 n_forecasts = 14;
+  optional int32 frequency = 15;
 }
 
 message VersionInfoDto {

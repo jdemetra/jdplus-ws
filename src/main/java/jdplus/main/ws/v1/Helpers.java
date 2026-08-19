@@ -190,6 +190,7 @@ class Helpers {
         boolean diffuserEgs = request.getDiffuserEgs();
         int nbackcasts = request.hasNBackcasts() ? request.getNBackcasts() : 0;
         int nforecasts = request.hasNForecasts() ? request.getNForecasts() : 0;
+        int frequency = request.hasFrequency() ? request.getFrequency() : 12;
 
         ModelSpec mspec = ModelSpec.builder()
                 .constant(constant)
@@ -209,21 +210,31 @@ class Helpers {
                 .rescale(true)
                 .build();
 
-        TemporalDisaggregationSpec spec = TemporalDisaggregationSpec.builder()
-                .modelSpec(mspec)
-                .estimationSpec(espec)
-                .algorithmSpec(aspec)
-                .average(average)
-                .build();
+
 
         TemporalDisaggregationResults results;
         if ( indicators.length > 0) {
+            TemporalDisaggregationSpec spec = TemporalDisaggregationSpec.builder()
+                    .modelSpec(mspec)
+                    .estimationSpec(espec)
+                    .algorithmSpec(aspec)
+                    .average(average)
+                    .build();
+
             for (int i = 0; i < indicators.length; ++i) {
                 indicators[i] = indicators[i].cleanExtremities();
             }
             results = TemporalDisaggregationProcessor.process(y, indicators, spec);
         }
         else {
+            TemporalDisaggregationSpec spec = TemporalDisaggregationSpec.builder()
+                    .modelSpec(mspec)
+                    .estimationSpec(espec)
+                    .algorithmSpec(aspec)
+                    .average(average)
+                    .defaultPeriod(frequency)
+                    .build();
+
             results = TemporalDisaggregationProcessor.process(y, nbackcasts, nforecasts, spec);
         }
 
