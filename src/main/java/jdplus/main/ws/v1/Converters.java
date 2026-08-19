@@ -260,7 +260,7 @@ class Converters {
                 // TODO: .setLegacy(?)
                 .setScalingFactor(value.isScalingFactor())
                 ;
-        
+
         return result.build();
     }
 

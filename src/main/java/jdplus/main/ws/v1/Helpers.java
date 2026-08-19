@@ -188,6 +188,8 @@ class Helpers {
         boolean zeroInit = request.getZeroInit();
         String algorithm = request.getAlgorithm();
         boolean diffuserEgs = request.getDiffuserEgs();
+        int nbackcasts = request.hasNBackcasts() ? request.getNBackcasts() : 0;
+        int nforecasts = request.hasNForecasts() ? request.getNForecasts() : 0;
 
         ModelSpec mspec = ModelSpec.builder()
                 .constant(constant)
@@ -214,11 +216,17 @@ class Helpers {
                 .average(average)
                 .build();
 
-        for (int i = 0; i < indicators.length; ++i) {
-            indicators[i] = indicators[i].cleanExtremities();
+        TemporalDisaggregationResults results;
+        if ( indicators.length > 0) {
+            for (int i = 0; i < indicators.length; ++i) {
+                indicators[i] = indicators[i].cleanExtremities();
+            }
+            results = TemporalDisaggregationProcessor.process(y, indicators, spec);
+        }
+        else {
+            results = TemporalDisaggregationProcessor.process(y, nbackcasts, nforecasts, spec);
         }
 
-        TemporalDisaggregationResults results = TemporalDisaggregationProcessor.process(y, indicators, spec);
         return Converters.fromTemporalDisaggregationResults(results);
     }
 }
