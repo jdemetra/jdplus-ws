@@ -378,6 +378,8 @@ message TemporalDisaggregationRequestDto {
   bool zeroInit = 10;
   string algorithm = 11;
   bool diffuserEgs = 12;
+  optional int32 n_backcasts = 13;
+  optional int32 n_forecasts = 14;
 }
 
 message VersionInfoDto {
