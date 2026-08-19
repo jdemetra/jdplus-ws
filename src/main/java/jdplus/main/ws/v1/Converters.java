@@ -229,19 +229,25 @@ class Converters {
         ToolkitMessages.TemporalDisaggregationResultsDto.Builder result = ToolkitMessages.TemporalDisaggregationResultsDto
                 .newBuilder()
                 .setOriginalSeries(fromTsData(value.getOriginalSeries()))
-                .setDisaggregationDomain(fromTsDomain(value.getDisaggregationDomain()))
+//                .setDisaggregationDomain(fromTsDomain(value.getDisaggregationDomain()))
                 .setHyperParametersCount(value.getHyperParametersCount())
                 .setLikelihood(fromDiffuseConcentratedLikelihood(value.getLikelihood()))
-                .setStats(fromDiffuseLikelihoodStatistics(value.getStats()))
-                .setMaximum(fromObjectiveFunctionPoint(value.getMaximum()))
-                .setResidualsDiagnostics(fromResidualsDiagnostics(value.getResidualsDiagnostics()))
+                    .setStats(fromDiffuseLikelihoodStatistics(value.getStats()))
+//                .setMaximum(fromObjectiveFunctionPoint(value.getMaximum()))
+//                .setResidualsDiagnostics(fromResidualsDiagnostics(value.getResidualsDiagnostics()))
                 .setDisaggregatedSeries(fromTsData(value.getDisaggregatedSeries()))
                 .setStDevDisaggregatedSeries(fromTsData(value.getStdevDisaggregatedSeries()))
-                .setRegressionEffects(fromTsData(value.getRegressionEffects()));
+        ;
+
+        if ( value.getRegressionEffects() != null )
+            result.setRegressionEffects(fromTsData(value.getRegressionEffects()));
+        else
+            result.setRegressionEffects(fromTsData(TsData.empty("No regression effects")));
 
         // TODO: indicators
 //        Arrays.stream(value.getIndicators())
 //                .forEach(indicator -> result.addIndicators(fromTsVariable(indicator)));
+        System.out.println("Temporal disaggregation results: " + value);
         return result.build();
     }
 
