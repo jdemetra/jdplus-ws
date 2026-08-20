@@ -549,7 +549,9 @@
         <profile>
             <id>quarkus-specifics</id>
             <activation>
-                <activeByDefault>true</activeByDefault>
+                <property>
+                    <name>!skipQuarkus</name>
+                </property>
             </activation>
             <build>
                 <plugins>
