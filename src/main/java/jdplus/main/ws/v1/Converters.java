@@ -229,20 +229,20 @@ class Converters {
         ToolkitMessages.TemporalDisaggregationResultsDto.Builder result = ToolkitMessages.TemporalDisaggregationResultsDto
                 .newBuilder()
                 .setOriginalSeries(fromTsData(value.getOriginalSeries()))
-//                .setDisaggregationDomain(fromTsDomain(value.getDisaggregationDomain()))
+                .setDisaggregationDomain(fromTsDomain(value.getDisaggregationDomain()))
                 .setHyperParametersCount(value.getHyperParametersCount())
                 .setLikelihood(fromDiffuseConcentratedLikelihood(value.getLikelihood()))
-                    .setStats(fromDiffuseLikelihoodStatistics(value.getStats()))
-//                .setMaximum(fromObjectiveFunctionPoint(value.getMaximum()))
+                .setStats(fromDiffuseLikelihoodStatistics(value.getStats()))
 //                .setResidualsDiagnostics(fromResidualsDiagnostics(value.getResidualsDiagnostics()))
                 .setDisaggregatedSeries(fromTsData(value.getDisaggregatedSeries()))
                 .setStDevDisaggregatedSeries(fromTsData(value.getStdevDisaggregatedSeries()))
         ;
 
+        if ( value.getMaximum() != null )
+            result.setMaximum(fromObjectiveFunctionPoint(value.getMaximum()));
+
         if ( value.getRegressionEffects() != null )
             result.setRegressionEffects(fromTsData(value.getRegressionEffects()));
-        else
-            result.setRegressionEffects(fromTsData(TsData.empty("No regression effects")));
 
         // TODO: indicators
 //        Arrays.stream(value.getIndicators())
