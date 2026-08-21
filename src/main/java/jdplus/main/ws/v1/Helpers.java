@@ -176,8 +176,6 @@ class Helpers {
     }
 
     static ToolkitMessages.TemporalDisaggregationResultsDto processTemporalDisaggregation(ToolkitMessages.TemporalDisaggregationRequestDto request) {
-        System.out.println("Processing temporal disaggregation request");
-
         TsData y = Converters.toTsData(request.getY());
         TsData[] indicators =  request.getIndicatorsList().stream().map(Converters::toTsData).toArray(TsData[]::new);
         boolean constant = request.getConstant();
@@ -203,20 +201,14 @@ class Helpers {
                 .zeroInitialization(zeroInit)
                 .build();
 
-        System.out.println("Temporal disaggregation model spec: " + mspec);
-
         TsEstimationSpec espec = TsEstimationSpec.builder()
                 .truncatedParameter(truncatedRho <= -1 ? null : truncatedRho)
                 .build();
-
-        System.out.println("Temporal disaggregation estimation spec: " + espec);
 
         AlgorithmSpec aspec = AlgorithmSpec.builder()
                 .algorithm(SsfInitialization.valueOf(algorithm))
                 .rescale(true)
                 .build();
-
-        System.out.println("Temporal disaggregation algorithm spec: " + aspec);
 
         if ( indicators.length > 0) {
             TemporalDisaggregationSpec spec = TemporalDisaggregationSpec.builder()
@@ -234,8 +226,6 @@ class Helpers {
 
         }
         else {
-            System.out.println("No indicators");
-
             TemporalDisaggregationSpec spec = TemporalDisaggregationSpec.builder()
                     .modelSpec(mspec)
                     .estimationSpec(espec)
@@ -243,10 +233,8 @@ class Helpers {
                     .average(average)
                     .defaultPeriod(frequency)
                     .build();
-            System.out.println("Temporal disaggregation spec: " + spec);
 
             TemporalDisaggregationResults results = TemporalDisaggregationProcessor.process(y, nbackcasts, nforecasts, spec);
-            System.out.println("Temporal disaggregation results: " + results);
 
             return Converters.fromTemporalDisaggregationResults(results);
         }

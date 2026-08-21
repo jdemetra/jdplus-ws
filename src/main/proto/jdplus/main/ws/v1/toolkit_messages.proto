@@ -253,11 +253,11 @@ message TemporalDisaggregationResultsDto {
   int32 hyperParametersCount = 4;
   DiffuseConcentratedLikelihoodDto likelihood = 5;
   DiffuseLikelihoodStatisticsDto stats = 6;
-  ObjectiveFunctionPointDto maximum = 7;
+  optional ObjectiveFunctionPointDto maximum = 7;
   ResidualsDiagnosticsDto residualsDiagnostics = 8;
   TsDataDto disaggregatedSeries = 9;
   TsDataDto stDevDisaggregatedSeries = 10;
-  TsDataDto regressionEffects = 11;
+  optional TsDataDto regressionEffects = 11;
 }
 
 message DiffuseConcentratedLikelihoodDto {
