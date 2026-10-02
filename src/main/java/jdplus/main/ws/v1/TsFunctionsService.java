@@ -230,4 +230,9 @@ public class TsFunctionsService implements TsFunctions {
     public Uni<ToolkitMessages.TemporalDisaggregationResultsDto> processTemporalDisaggregation(ToolkitMessages.TemporalDisaggregationRequestDto request) {
         return Uni.createFrom().item(Helpers.processTemporalDisaggregation(request));
     }
+
+    @Override
+    public Uni<ToolkitMessages.MatrixDto> tramoForecast(ToolkitMessages.TramoForecastRequestDto request) {
+        return Uni.createFrom().item(Helpers.tramoForecast(request));
+    }
 }

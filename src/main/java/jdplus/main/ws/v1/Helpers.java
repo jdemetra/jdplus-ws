@@ -20,6 +20,7 @@ import jdplus.toolkit.base.core.ssf.sts.Noise;
 import jdplus.toolkit.base.core.ssf.univariate.DefaultSmoothingResults;
 import jdplus.toolkit.base.core.ssf.univariate.SsfData;
 import jdplus.toolkit.base.core.stats.DescriptiveStatistics;
+import jdplus.tramoseats.base.r.Tramo;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -177,7 +178,7 @@ class Helpers {
 
     static ToolkitMessages.TemporalDisaggregationResultsDto processTemporalDisaggregation(ToolkitMessages.TemporalDisaggregationRequestDto request) {
         TsData y = Converters.toTsData(request.getY());
-        TsData[] indicators =  request.getIndicatorsList().stream().map(Converters::toTsData).toArray(TsData[]::new);
+        TsData[] indicators = request.getIndicatorsList().stream().map(Converters::toTsData).toArray(TsData[]::new);
         boolean constant = request.getConstant();
         boolean trend = request.getTrend();
         String model = request.getModel();
@@ -210,7 +211,7 @@ class Helpers {
                 .rescale(true)
                 .build();
 
-        if ( indicators.length > 0) {
+        if (indicators.length > 0) {
             TemporalDisaggregationSpec spec = TemporalDisaggregationSpec.builder()
                     .modelSpec(mspec)
                     .estimationSpec(espec)
@@ -224,8 +225,7 @@ class Helpers {
             TemporalDisaggregationResults results = TemporalDisaggregationProcessor.process(y, indicators, spec);
             return Converters.fromTemporalDisaggregationResults(results);
 
-        }
-        else {
+        } else {
             TemporalDisaggregationSpec spec = TemporalDisaggregationSpec.builder()
                     .modelSpec(mspec)
                     .estimationSpec(espec)
@@ -238,5 +238,15 @@ class Helpers {
 
             return Converters.fromTemporalDisaggregationResults(results);
         }
+    }
+
+    public static ToolkitMessages.MatrixDto tramoForecast(ToolkitMessages.TramoForecastRequestDto request) {
+       TsData series = Converters.toTsData(request.getSeries());
+       String defSpec = request.getDefSpec();
+       int nForecasts = request.getNForecasts();
+
+       // TODO: modelling context
+       Matrix forecasts = Tramo.forecast(series, defSpec, nForecasts);
+       return Converters.fromMatrix(forecasts);
     }
 }

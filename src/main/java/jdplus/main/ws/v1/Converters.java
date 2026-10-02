@@ -235,13 +235,12 @@ class Converters {
                 .setStats(fromDiffuseLikelihoodStatistics(value.getStats()))
 //                .setResidualsDiagnostics(fromResidualsDiagnostics(value.getResidualsDiagnostics()))
                 .setDisaggregatedSeries(fromTsData(value.getDisaggregatedSeries()))
-                .setStDevDisaggregatedSeries(fromTsData(value.getStdevDisaggregatedSeries()))
-        ;
+                .setStDevDisaggregatedSeries(fromTsData(value.getStdevDisaggregatedSeries()));
 
-        if ( value.getMaximum() != null )
+        if (value.getMaximum() != null)
             result.setMaximum(fromObjectiveFunctionPoint(value.getMaximum()));
 
-        if ( value.getRegressionEffects() != null )
+        if (value.getRegressionEffects() != null)
             result.setRegressionEffects(fromTsData(value.getRegressionEffects()));
 
         // TODO: indicators
@@ -251,11 +250,10 @@ class Converters {
         return result.build();
     }
 
-    public static ToolkitMessages.DiffuseConcentratedLikelihoodDto fromDiffuseConcentratedLikelihood(DiffuseConcentratedLikelihood value)
-        {
+    public static ToolkitMessages.DiffuseConcentratedLikelihoodDto fromDiffuseConcentratedLikelihood(DiffuseConcentratedLikelihood value) {
         ToolkitMessages.DiffuseConcentratedLikelihoodDto.Builder result = ToolkitMessages.DiffuseConcentratedLikelihoodDto
                 .newBuilder()
-                .setLl( value.logLikelihood())
+                .setLl(value.logLikelihood())
                 .setSsqerr(value.ssq())
                 .setLdet(value.logDeterminant())
                 // TODO: .setLddet(?)
@@ -264,8 +262,7 @@ class Converters {
                 .setNxd(value.nx()) // ?
                 // TODO: .setBvar(?)
                 // TODO: .setLegacy(?)
-                .setScalingFactor(value.isScalingFactor())
-                ;
+                .setScalingFactor(value.isScalingFactor());
 
         return result.build();
     }
@@ -277,7 +274,7 @@ class Converters {
                 .setId(value.getId())
                 // TODO: .setLag(?)
                 // TODO: .setCoefficient(?)
-        ;
+                ;
         return result.build();
     }
 
