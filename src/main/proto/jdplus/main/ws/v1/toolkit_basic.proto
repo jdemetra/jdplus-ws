@@ -36,4 +36,6 @@ service TsFunctions {
   rpc BuildTsDataTable(BuildTsDataTableInputDto) returns (BuildTsDataTableOutputDto);
 
   rpc ProcessTemporalDisaggregation(TemporalDisaggregationRequestDto) returns (TemporalDisaggregationResultsDto);
+
+  rpc TramoForecast(TramoForecastRequestDto) returns (MatrixDto);
 }
