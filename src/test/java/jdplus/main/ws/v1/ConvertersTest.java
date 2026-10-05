@@ -10,9 +10,9 @@ public class ConvertersTest {
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     @ParameterizedTest
-    @EnumSource(ToolkitMessages.Frequency.class)
-    public void testTsUnit(ToolkitMessages.Frequency freq) {
-        if (freq == ToolkitMessages.Frequency.UNRECOGNIZED) {
+    @EnumSource(Frequency.class)
+    public void testTsUnit(Frequency freq) {
+        if (freq == Frequency.UNRECOGNIZED) {
             assertThatRuntimeException()
                     .isThrownBy(() -> Converters.toTsUnit(freq));
         } else {

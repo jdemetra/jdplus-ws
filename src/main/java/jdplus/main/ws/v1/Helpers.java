@@ -12,6 +12,8 @@ import jdplus.toolkit.base.api.timeseries.util.TsDataBuilder;
 import jdplus.toolkit.base.api.util.Table;
 import jdplus.toolkit.base.core.arima.ArimaModel;
 import jdplus.toolkit.base.core.math.linearfilters.BackFilter;
+import jdplus.toolkit.base.core.math.matrices.FastMatrix;
+import jdplus.toolkit.base.core.regsarima.regular.Forecast;
 import jdplus.toolkit.base.core.ssf.StateComponent;
 import jdplus.toolkit.base.core.ssf.arima.SsfArima;
 import jdplus.toolkit.base.core.ssf.composite.CompositeSsf;
@@ -20,7 +22,8 @@ import jdplus.toolkit.base.core.ssf.sts.Noise;
 import jdplus.toolkit.base.core.ssf.univariate.DefaultSmoothingResults;
 import jdplus.toolkit.base.core.ssf.univariate.SsfData;
 import jdplus.toolkit.base.core.stats.DescriptiveStatistics;
-import jdplus.tramoseats.base.r.Tramo;
+import jdplus.tramoseats.base.api.tramo.TramoSpec;
+import jdplus.tramoseats.base.core.tramo.TramoKernel;
 
 import java.time.LocalDate;
 import java.util.Arrays;
@@ -29,24 +32,24 @@ import static jdplus.main.ws.v1.Converters.*;
 
 class Helpers {
 
-    static ToolkitMessages.ResultStatusDto ok() {
-        return ToolkitMessages.ResultStatusDto
+    static ResultStatusDto ok() {
+        return ResultStatusDto
                 .newBuilder()
-                .setType(ToolkitMessages.ResultStatusType.STATUS_OK)
+                .setType(ResultStatusType.STATUS_OK)
                 .setMessage("")
                 .build();
     }
 
-    static ToolkitMessages.ResultStatusDto ko(String message) {
-        return ToolkitMessages.ResultStatusDto
+    static ResultStatusDto ko(String message) {
+        return ResultStatusDto
                 .newBuilder()
-                .setType(ToolkitMessages.ResultStatusType.STATUS_ERROR)
+                .setType(ResultStatusType.STATUS_ERROR)
                 .setMessage(message)
                 .build();
     }
 
-    static ToolkitMessages.TsFunctionOutputDto normalize(ToolkitMessages.TsFunctionInputDto input) {
-        return ToolkitMessages.TsFunctionOutputDto
+    static TsFunctionOutputDto normalize(TsFunctionInputDto input) {
+        return TsFunctionOutputDto
                 .newBuilder()
                 .setId(input.getId())
                 .setStatus(ok())
@@ -54,10 +57,10 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.DescriptiveStatisticsDto statistics(ToolkitMessages.TsFunctionInputDto input) {
+    static DescriptiveStatisticsDto statistics(TsFunctionInputDto input) {
         DescriptiveStatistics value = DescriptiveStatistics.of(toTsData(input.getSeries()).getValues());
         double[] quantiles = value.quantiles(4);
-        return ToolkitMessages.DescriptiveStatisticsDto
+        return DescriptiveStatisticsDto
                 .newBuilder()
                 .setId(input.getId())
                 .setStatus(ok())
@@ -73,8 +76,8 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.TsFunctionOutputDto pct(ToolkitMessages.PctInputDto input) {
-        return ToolkitMessages.TsFunctionOutputDto
+    static TsFunctionOutputDto pct(PctInputDto input) {
+        return TsFunctionOutputDto
                 .newBuilder()
                 .setId(input.getId())
                 .setStatus(ok())
@@ -82,8 +85,8 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.TsFunctionOutputDto delta(ToolkitMessages.DeltaInputDto input) {
-        return ToolkitMessages.TsFunctionOutputDto
+    static TsFunctionOutputDto delta(DeltaInputDto input) {
+        return TsFunctionOutputDto
                 .newBuilder()
                 .setId(input.getId())
                 .setStatus(ok())
@@ -91,9 +94,9 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.TsFunctionOutputDto aggregate(ToolkitMessages.AggregationInputDto input) {
+    static TsFunctionOutputDto aggregate(AggregationInputDto input) {
         TsData result = toTsData(input.getSeries()).aggregate(toTsUnit(input.getNewFrequency()), toAggregationType(input.getAggregationType()), input.getComplete());
-        return ToolkitMessages.TsFunctionOutputDto
+        return TsFunctionOutputDto
                 .newBuilder()
                 .setId(input.getId())
                 .setStatus(ok())
@@ -101,7 +104,7 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.HodrickPrescottOutputDto hodrickPrescott(ToolkitMessages.HodrickPrescottInputDto input) {
+    static HodrickPrescottOutputDto hodrickPrescott(HodrickPrescottInputDto input) {
         TsData s = toTsData(input.getSeries());
 
         ArimaModel rw2 = new ArimaModel(BackFilter.ONE, BackFilter.ofInternal(1, -2, 1), BackFilter.ONE, 1);
@@ -123,7 +126,7 @@ class Helpers {
         TsData trend = TsData.of(s.getStart(), rslts.getComponent(pos[0]));
         TsData noise = TsData.of(s.getStart(), rslts.getComponent(pos[1]));
 
-        return ToolkitMessages.HodrickPrescottOutputDto
+        return HodrickPrescottOutputDto
                 .newBuilder()
                 .setId(input.getId())
                 .setStatus(ok())
@@ -132,12 +135,12 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.TsFunctionOutputDto buildTsData(ToolkitMessages.BuildTsDataInputDto request) {
+    static TsFunctionOutputDto buildTsData(BuildTsDataInputDto request) {
         TsDataBuilder<LocalDate> builder = TsDataBuilder.byDate(toObsGathering(request.getGathering()));
         request.getObservationsList().forEach(obs -> builder.add(toLocalDate(obs.getDate()), obs.getValue()));
         TsData result = builder.build();
 
-        return ToolkitMessages.TsFunctionOutputDto
+        return TsFunctionOutputDto
                 .newBuilder()
                 .setId(request.getId())
                 .setStatus(result.isEmpty() ? ko(result.getEmptyCause()) : ok())
@@ -145,12 +148,12 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.BuildTsDataTableOutputDto buildTsDataTable(ToolkitMessages.BuildTsDataTableInputDto request) {
+    static BuildTsDataTableOutputDto buildTsDataTable(BuildTsDataTableInputDto request) {
         TsDataTable result = TsDataTable.of(request.getCollectionList(), Converters::toTsData);
 
         TsDataTable.Cursor cursor = result.cursor(toDistributionType(request.getDistributionType()));
         Matrix.Mutable matrix = Matrix.Mutable.make(cursor.getPeriodCount(), cursor.getSeriesCount());
-        Table<ToolkitMessages.ValueStatus> statuses = new Table<>(cursor.getPeriodCount(), cursor.getSeriesCount());
+        Table<ValueStatus> statuses = new Table<>(cursor.getPeriodCount(), cursor.getSeriesCount());
         for (int i = 0; i < cursor.getPeriodCount(); i++) {
             for (int j = 0; j < cursor.getSeriesCount(); j++) {
                 cursor.moveTo(i, j);
@@ -159,16 +162,16 @@ class Helpers {
             }
         }
 
-        ToolkitMessages.TsMatrixDto tsMatrix = ToolkitMessages.TsMatrixDto
+        TsMatrixDto tsMatrix = TsMatrixDto
                 .newBuilder()
                 .setStart(fromTsPeriod(result.getDomain().getStartPeriod()))
                 .setValues(fromMatrix(matrix))
                 .build();
 
-        ToolkitMessages.ValueStatus[] buffer = new ToolkitMessages.ValueStatus[statuses.getRowsCount() * statuses.getColumnsCount()];
+        ValueStatus[] buffer = new ValueStatus[statuses.getRowsCount() * statuses.getColumnsCount()];
         statuses.copyTo(buffer);
 
-        return ToolkitMessages.BuildTsDataTableOutputDto
+        return BuildTsDataTableOutputDto
                 .newBuilder()
                 .setId(request.getId())
                 .setMatrix(tsMatrix)
@@ -176,7 +179,7 @@ class Helpers {
                 .build();
     }
 
-    static ToolkitMessages.TemporalDisaggregationResultsDto processTemporalDisaggregation(ToolkitMessages.TemporalDisaggregationRequestDto request) {
+    static TemporalDisaggregationResultsDto processTemporalDisaggregation(TemporalDisaggregationRequestDto request) {
         TsData y = Converters.toTsData(request.getY());
         TsData[] indicators = request.getIndicatorsList().stream().map(Converters::toTsData).toArray(TsData[]::new);
         boolean constant = request.getConstant();
@@ -240,13 +243,33 @@ class Helpers {
         }
     }
 
-    public static ToolkitMessages.MatrixDto tramoForecast(ToolkitMessages.TramoForecastRequestDto request) {
-       TsData series = Converters.toTsData(request.getSeries());
-       String defSpec = request.getDefSpec();
-       int nForecasts = request.getNForecasts();
+    public static TramoSpec getSpecFromRequest(TramoForecastRequestDto request) {
+        return switch (request.getSpecCase()) {
+            case DEFSPEC -> TramoSpec.fromString(request.getDefSpec());
+            case FULLSPEC -> Converters.ToTramoSpec(request.getFullSpec());
+            case SPEC_NOT_SET -> TramoSpec.fromString("TRfull");
+        };
+    }
 
-       // TODO: modelling context
-       Matrix forecasts = Tramo.forecast(series, defSpec, nForecasts);
-       return Converters.fromMatrix(forecasts);
+    public static MatrixDto tramoForecast(TramoForecastRequestDto request) {
+        TsData series = Converters.toTsData(request.getSeries());
+        int nForecasts = request.getNForecasts();
+
+        TramoSpec spec = getSpecFromRequest(request);
+
+        // TODO: modelling context
+        TramoKernel kernel = TramoKernel.of(spec, null);
+
+        Forecast f = new Forecast(kernel, nForecasts);
+        if (!f.process(series.cleanExtremities())) {
+            throw new RuntimeException("Tramo forecast processing failed");
+        }
+
+        FastMatrix R = FastMatrix.make(nForecasts, 4);
+        R.column(0).copy(f.getForecasts());
+        R.column(1).copy(f.getForecastsStdev());
+        R.column(2).copy(f.getRawForecasts());
+        R.column(3).copy(f.getRawForecastsStdev());
+        return Converters.fromMatrix(R);
     }
 }

@@ -3,6 +3,8 @@ syntax = "proto3";
 package jdplus.main.ws.v1;
 
 option java_package = "jdplus.main.ws.v1";
+option java_multiple_files = true;
+
 option csharp_namespace = "JDPlus.Main.WS.V1";
 
 message EmptyDto {}
@@ -391,11 +393,380 @@ message VersionInfoDto {
 
 message TramoForecastRequestDto {
   TsDataDto series = 1;
-  string defSpec = 2;
+  oneof spec {
+     string defSpec = 2;
+     TramoSpecDto fullSpec = 5;
+  }
   int32 n_forecasts = 3;
   optional ModellingContextDto modellingContext = 4;
 }
 
-message ModellingContextDto {
+enum Transformation {
+  FN_LEVEL = 0;
+  FN_LOG = 1;
+  FN_AUTO = 10;
+}
 
+enum LengthOfPeriod{
+  LP_NONE = 0;
+  LP_LEAPYEAR = 1;
+  LP_LENGTHOFPERIOD = 2;
+}
+enum EasterType {
+  EASTER_UNUSED = 0;
+  EASTER_STANDARD = 1;
+  EASTER_INCLUDEEASTER = 2;
+  EASTER_INCLUDEEASTERMONDAY = 3;
+}
+
+enum TradingDays{
+  TD_NONE = 0;
+  /*
+  mon-fri + sat-sun
+  */
+  TD2 = 1;
+  /*
+  mon-sat + sun
+  */
+  TD2C = 2;
+  /*
+  mon-fri + sat + sun
+  */
+  TD3 = 3;
+  /*
+  mon-thu + fri-sat + sun
+  */
+  TD3C = 4;
+  /*
+  mon-thu + fri + sat + sun
+  */
+  TD4 = 5;
+  TD7 = 6;
+}
+
+enum TradingDaysTest {
+  TD_TEST_NO = 0;
+  TD_TEST_SEPARATE_T = 1;
+  TD_TEST_JOINT_F = 2;
+}
+
+enum AutomaticTradingDays {
+  TD_AUTO_NO = 0;
+  TD_AUTO_FTEST = 1;
+  TD_AUTO_WALD = 2;
+  TD_AUTO_AIC = 3;
+  TD_AUTO_BIC = 4;
+}
+
+message OutlierDto{
+  string name = 1;
+  string code = 2;
+  DateDto position = 3;
+  ParameterDto coefficient = 5;
+  map<string, string> metadata = 6;
+}
+
+message InterventionVariableDto{
+  message SequenceDto {
+    DateDto start = 1;
+    DateDto end = 2;
+  }
+
+  string name = 1;
+  repeated SequenceDto sequences = 2;
+  double delta = 3;
+  double seasonal_delta = 4;
+  ParameterDto coefficient = 5;
+  map<string, string> metadata = 6;
+}
+
+message RampDto{
+  string name = 1;
+  DateDto start = 2;
+  DateDto end = 3;
+  ParameterDto coefficient = 5;
+  map<string, string> metadata = 6;
+}
+
+message TramoSpecDto {
+  BasicSpecDto basic = 1;
+  TransformSpecDto transform = 2;
+  OutlierSpecDto outlier = 3;
+  SarimaSpecDto arima = 4;
+  AutoModelSpecDto automodel = 5;
+  RegressionSpecDto regression = 6;
+  EstimateSpecDto estimate = 7;
+}
+
+message SarimaSpecDto{
+  int32 period = 1;
+  repeated ParameterDto phi = 2;
+  int32 d = 3;
+  repeated ParameterDto theta = 4;
+  repeated ParameterDto bphi = 5;
+  int32 bd = 6;
+  repeated ParameterDto btheta = 7;
+}
+
+message BasicSpecDto {
+  TimeSelectorDto span = 1;
+  bool preliminary_check = 3;
+  int32 annual_frequency = 4;
+}
+
+message TransformSpecDto{
+  Transformation transformation = 1;
+  double fct = 2;
+  LengthOfPeriod adjust = 3;
+  bool outliers_correction = 4;
+}
+
+message OutlierSpecDto{
+  bool enabled = 1;
+  TimeSelectorDto span = 2;
+  bool ao = 3;
+  bool ls = 4;
+  bool tc = 5;
+  bool so = 6;
+  double va = 7;
+  double tcrate = 8;
+  bool ml = 9;
+}
+
+message AutoModelSpecDto{
+  bool enabled = 1;
+  double cancel = 2;
+  double ub1 = 3;
+  double ub2 = 4;
+  double pcr = 5;
+  double pc = 6;
+  double tsig = 7;
+  bool accept_def = 8;
+  bool ami_compare = 9;
+}
+
+message EasterSpecDto{
+  EasterType type = 1;
+  int32 duration = 2;
+  bool julian = 3;
+  bool test = 4;
+  ParameterDto coefficient = 10;
+}
+
+message TradingDaysSpecDto{
+  TradingDays td = 1;
+  LengthOfPeriod lp = 2;
+  string holidays = 3;
+  repeated string users = 4;
+  int32 w = 5;
+  TradingDaysTest test = 6;
+  AutomaticTradingDays auto = 7;
+  double ptest = 8;
+  bool auto_adjust = 9;
+  repeated ParameterDto tdcoefficients = 10;
+  ParameterDto lpcoefficient = 11;
+}
+
+message RegressionSpecDto{
+  ParameterDto mean = 1;
+  bool check_mean = 2;
+  TradingDaysSpecDto td = 3;
+  EasterSpecDto easter = 4;
+  repeated OutlierDto outliers = 5;
+  repeated TsVariableDto users = 6;
+  repeated InterventionVariableDto interventions = 7;
+  repeated RampDto ramps = 8;
+}
+
+message EstimateSpecDto{
+  TimeSelectorDto span = 1;
+  bool ml = 2;
+  double tol = 3;
+  double ubp = 4;
+}
+
+message ModellingContextDto {
+  map<string, CalendarDefinitionDto> calendars = 1;
+  map<string, TsDataSuppliersDto> variables = 2;
+}
+
+message TsDataSuppliersDto {
+  message ItemDto {
+    string name = 1;
+    oneof supplier {
+      TsDataDto data = 2;
+      DynamicTsDataDto dynamic_data = 3;
+    }
+  }
+  repeated ItemDto items = 1;
+}
+
+message DynamicTsDataDto {
+  TsMonikerDto moniker = 1;
+  TsDataDto current = 2;
+}
+
+
+/* Calendars */
+
+message CalendarDefinitionDto {
+  oneof definition {
+    CalendarDto calendar = 1;
+    WeightedCalendarDto  weighted_calendar = 2;
+    ChainedCalendarDto chained_calendar = 3;
+  }
+}
+
+message CalendarDto {
+  repeated FixedDayDto fixed_days = 1;
+  repeated EasterRelatedDayDto easter_related_days = 2;
+  repeated FixedWeekDayDto fixed_week_days = 3;
+  repeated PrespecifiedHolidayDto prespecified_holidays = 4;
+  repeated SingleDateDto single_dates = 5;
+  bool mean_correction = 10;
+}
+
+message WeightedCalendarDto {
+  /* Weighted calendars are only defined inside a modelling context */
+  message ItemDto {
+    string calendar = 1;
+    double weight = 2;
+  }
+  repeated ItemDto items = 1;
+}
+
+/* Chained calendars are only defined inside a modelling context */
+message ChainedCalendarDto {
+  string calendar1 = 1;
+  string calendar2 = 2;
+  DateDto break_date = 3;
+}
+
+message ValidityPeriodDto {
+  DateDto start = 1;
+  DateDto end = 2;
+}
+
+enum CalendarEvent {
+  HOLIDAY_UNSPECIFIED = 0;
+  /**
+   * January, 1
+   */
+  HOLIDAY_NEWYEAR = 1;
+  /**
+   * Shrove Monday (48 days before Easter)
+   */
+  HOLIDAY_SHROVEMONDAY = 2;
+  /**
+   * Shrove Tuesday (47 days before Easter)
+   */
+  HOLIDAY_SHROVETUESDAY = 3;
+  /**
+   * AshWednesday (46 days before Easter)
+   */
+  HOLIDAY_ASHWEDNESDAY = 4;
+  /**
+   * Easter
+   */
+  HOLIDAY_EASTER = 5;
+  /**
+   * Julian Easter.
+   */
+  HOLIDAY_JULIANEASTER = 6;
+  /**
+   * Last Thursday before Easter
+   */
+  HOLIDAY_MAUNDYTHURSDAY = 7;
+  /**
+   * Last Friday before Easter
+   */
+  HOLIDAY_GOODFRIDAY = 8;
+  /**
+   * First Monday after Easter
+   */
+  HOLIDAY_EASTERMONDAY = 9;
+  /**
+   * Ascension (40 days after Easter)
+   */
+  HOLIDAY_ASCENSION = 10;
+  /**
+   * Pentecost (50 days after Easter)
+   */
+  HOLIDAY_PENTECOST = 11;
+  /**
+   * Corpus Christi (60 days after Easter)
+   */
+  HOLIDAY_CORPUSCHRISTI = 12;
+  /**
+   * First Monday after Pentecost (50 days after Easter)
+   */
+  HOLIDAY_WHITMONDAY = 13;
+  /**
+   * May, 1
+   */
+  HOLIDAY_MAYDAY = 14;
+  /**
+   * August, 15
+   */
+  HOLIDAY_ASSUMPTION = 15;
+  /**
+   * Second Tuesday of September
+   */
+  HOLIDAY_LABORDAY = 16;
+  /**
+   * October, 31
+   */
+  HOLIDAY_HALLOWEEN = 17;
+  /**
+   * November, 1
+   */
+  HOLIDAY_ALLSAINTSDAY = 18;
+  /**
+   * November, 11
+   */
+  HOLIDAY_ARMISTICE = 19;
+  /**
+   * Fourth Thursday of November
+   */
+  HOLIDAY_THANKSGIVING = 20;
+  /**
+   * December, 25
+   */
+  HOLIDAY_CHRISTMAS = 21;
+}
+
+message SingleDateDto{
+  DateDto date = 1;
+  double weight = 2;
+}
+
+message FixedDayDto{
+  int32 month = 1;
+  int32 day = 2;
+  double weight = 3;
+  ValidityPeriodDto validity = 4;
+}
+
+message EasterRelatedDayDto{
+  int32 offset = 1;
+  bool julian = 2;
+  double weight = 3;
+  ValidityPeriodDto validity = 4;
+}
+
+message PrespecifiedHolidayDto{
+  CalendarEvent event = 1;
+  int32 offset = 2;
+  double weight = 3;
+  ValidityPeriodDto validity = 4;
+}
+
+message FixedWeekDayDto {
+  int32 month = 1;
+  /* Corresponds to the first, second...)*/
+  int32 position = 2;
+  /* ISO-8601 standard, from 1 (Monday) to 7 (Sunday) */
+  int32 weekday = 3;
+  double weight = 4;
+  ValidityPeriodDto validity = 5;
 }

@@ -158,7 +158,7 @@
         </dependency>
         <dependency>
             <groupId>eu.europa.ec.joinup.sat</groupId>
-            <artifactId>jdplus-tramoseats-base-r</artifactId>
+            <artifactId>jdplus-tramoseats-base-core</artifactId>
             <version>${jd3.version}</version>
         </dependency>
         <dependency>

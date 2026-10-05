@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import static jdplus.main.ws.v1.Converters.*;
-import static jdplus.main.ws.v1.ToolkitMessages.ValueStatus.*;
+import static jdplus.main.ws.v1.ValueStatus.*;
 import static java.lang.Double.NaN;
 import static jdplus.toolkit.base.api.timeseries.TsPeriod.*;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -27,13 +27,13 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testNormalize() {
-        var input = ToolkitMessages.TsFunctionInputDto
+        var input = TsFunctionInputDto
                 .newBuilder()
                 .setId("Example 1")
                 .setSeries(fromTsData(TsData.of(yearly(2010), DoubleSeq.of(3, 4))))
                 .build();
 
-        var output = ToolkitMessages.TsFunctionOutputDto
+        var output = TsFunctionOutputDto
                 .newBuilder()
                 .setId("Example 1")
                 .setSeries(fromTsData(TsData.of(yearly(2010), DoubleSeq.of(-1, 1))))
@@ -46,13 +46,13 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testStatistics() {
-        var input = ToolkitMessages.TsFunctionInputDto
+        var input = TsFunctionInputDto
                 .newBuilder()
                 .setId("Example 1")
                 .setSeries(fromTsData(TsData.of(yearly(2010), DoubleSeq.of(0, 1, 2, 3, 4, 5, 6, 7))))
                 .build();
 
-        var output = ToolkitMessages.DescriptiveStatisticsDto
+        var output = DescriptiveStatisticsDto
                 .newBuilder()
                 .setId("Example 1")
                 .setN(8)
@@ -71,15 +71,15 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testBuildTsDataSuccess() {
-        var input = ToolkitMessages.BuildTsDataInputDto
+        var input = BuildTsDataInputDto
                 .newBuilder()
                 .setId("Example 1")
                 .setGathering(fromObsGathering(ObsGathering.DEFAULT))
-                .addObservations(ToolkitMessages.BuildTsDataObsDto.newBuilder().setDate(fromLocalDate(LocalDate.of(2010, 1, 1))).setValue(11).build())
-                .addObservations(ToolkitMessages.BuildTsDataObsDto.newBuilder().setDate(fromLocalDate(LocalDate.of(2010, 2, 1))).setValue(22).build())
+                .addObservations(BuildTsDataObsDto.newBuilder().setDate(fromLocalDate(LocalDate.of(2010, 1, 1))).setValue(11).build())
+                .addObservations(BuildTsDataObsDto.newBuilder().setDate(fromLocalDate(LocalDate.of(2010, 2, 1))).setValue(22).build())
                 .build();
 
-        var output = ToolkitMessages.TsFunctionOutputDto
+        var output = TsFunctionOutputDto
                 .newBuilder()
                 .setId("Example 1")
                 .setSeries(fromTsData(TsData.of(monthly(2010, 1), DoubleSeq.of(11, 22))))
@@ -92,14 +92,14 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testBuildTsDataError() {
-        var input = ToolkitMessages.BuildTsDataInputDto
+        var input = BuildTsDataInputDto
                 .newBuilder()
                 .setId("abc")
                 .setGathering(fromObsGathering(ObsGathering.DEFAULT))
-                .addObservations(ToolkitMessages.BuildTsDataObsDto.newBuilder().setDate(fromLocalDate(LocalDate.of(2010, 1, 1))).setValue(1).build())
+                .addObservations(BuildTsDataObsDto.newBuilder().setDate(fromLocalDate(LocalDate.of(2010, 1, 1))).setValue(1).build())
                 .build();
 
-        var output = ToolkitMessages.TsFunctionOutputDto
+        var output = TsFunctionOutputDto
                 .newBuilder()
                 .setId("abc")
                 .setSeries(fromTsData(TsData.empty("Cannot guess frequency with a single observation")))
@@ -112,7 +112,7 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testBuildTsDataTable() {
-        var input = ToolkitMessages.BuildTsDataTableInputDto
+        var input = BuildTsDataTableInputDto
                 .newBuilder()
                 .setId("abc")
                 .setDistributionType(fromDistributionType(TsDataTable.DistributionType.FIRST))
@@ -120,13 +120,13 @@ public class TsFunctionsServiceTest {
                 .addCollection(fromTsData(TsData.of(monthly(2010, 1), DoubleSeq.of(2.1, 2.2))))
                 .build();
 
-        var output = ToolkitMessages.BuildTsDataTableOutputDto
+        var output = BuildTsDataTableOutputDto
                 .newBuilder()
                 .setId("abc")
-                .setMatrix(ToolkitMessages.TsMatrixDto
+                .setMatrix(TsMatrixDto
                         .newBuilder()
                         .setStart(fromTsPeriod(parse("2010/P1M")))
-                        .setValues(ToolkitMessages.MatrixDto
+                        .setValues(MatrixDto
                                 .newBuilder()
                                 .setNrows(3)
                                 .setNcols(2)
@@ -142,7 +142,7 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testBuildTsDataTableDaily() {
-        var input = ToolkitMessages.BuildTsDataTableInputDto
+        var input = BuildTsDataTableInputDto
                 .newBuilder()
                 .setId("abc")
                 .setDistributionType(fromDistributionType(TsDataTable.DistributionType.FIRST))
@@ -150,13 +150,13 @@ public class TsFunctionsServiceTest {
                 .addCollection(fromTsData(TsData.of(daily(2010, 1, 1), DoubleSeq.of(2.1, 2.2))))
                 .build();
 
-        var output = ToolkitMessages.BuildTsDataTableOutputDto
+        var output = BuildTsDataTableOutputDto
                 .newBuilder()
                 .setId("abc")
-                .setMatrix(ToolkitMessages.TsMatrixDto
+                .setMatrix(TsMatrixDto
                         .newBuilder()
                         .setStart(fromTsPeriod(parse("2010-01/P1D")))
-                        .setValues(ToolkitMessages.MatrixDto
+                        .setValues(MatrixDto
                                 .newBuilder()
                                 .setNrows(31)
                                 .setNcols(2)
@@ -177,19 +177,19 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testBuildTsDataTableEmpty() {
-        var input = ToolkitMessages.BuildTsDataTableInputDto
+        var input = BuildTsDataTableInputDto
                 .newBuilder()
                 .setId("abc")
                 .setDistributionType(fromDistributionType(TsDataTable.DistributionType.FIRST))
                 .build();
 
-        var output = ToolkitMessages.BuildTsDataTableOutputDto
+        var output = BuildTsDataTableOutputDto
                 .newBuilder()
                 .setId("abc")
-                .setMatrix(ToolkitMessages.TsMatrixDto
+                .setMatrix(TsMatrixDto
                         .newBuilder()
                         .setStart(fromTsPeriod(parse("1970/P1Y")))
-                        .setValues(ToolkitMessages.MatrixDto
+                        .setValues(MatrixDto
                                 .newBuilder()
                                 .setNrows(0)
                                 .setNcols(0)
