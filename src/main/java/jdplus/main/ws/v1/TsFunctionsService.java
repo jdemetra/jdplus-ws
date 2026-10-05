@@ -24,9 +24,9 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 public class TsFunctionsService implements TsFunctions {
 
     @Override
-    public Uni<ToolkitMessages.VersionInfoDto> getVersion(ToolkitMessages.EmptyDto request) {
+    public Uni<VersionInfoDto> getVersion(EmptyDto request) {
         // TODO: improve version management
-        return Uni.createFrom().item(ToolkitMessages.VersionInfoDto.newBuilder()
+        return Uni.createFrom().item(VersionInfoDto.newBuilder()
                 .setMajor(0)
                 .setMinor(0)
                 .setRevision(1)
@@ -56,7 +56,7 @@ public class TsFunctionsService implements TsFunctions {
     @POST
     @Path("/normalize")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutputDto> normalize(ToolkitMessages.TsFunctionInputDto request) {
+    public Uni<TsFunctionOutputDto> normalize(TsFunctionInputDto request) {
         return Uni.createFrom().item(Helpers.normalize(request));
     }
 
@@ -83,35 +83,35 @@ public class TsFunctionsService implements TsFunctions {
     @POST
     @Path("/statistics")
     @Override
-    public Uni<ToolkitMessages.DescriptiveStatisticsDto> statistics(ToolkitMessages.TsFunctionInputDto request) {
+    public Uni<DescriptiveStatisticsDto> statistics(TsFunctionInputDto request) {
         return Uni.createFrom().item(Helpers.statistics(request));
     }
 
     @POST
     @Path("/pct")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutputDto> pct(ToolkitMessages.PctInputDto request) {
+    public Uni<TsFunctionOutputDto> pct(PctInputDto request) {
         return Uni.createFrom().item(Helpers.pct(request));
     }
 
     @POST
     @Path("/delta")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutputDto> delta(ToolkitMessages.DeltaInputDto request) {
+    public Uni<TsFunctionOutputDto> delta(DeltaInputDto request) {
         return Uni.createFrom().item(Helpers.delta(request));
     }
 
     @POST
     @Path("/aggregate")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutputDto> aggregate(ToolkitMessages.AggregationInputDto request) {
+    public Uni<TsFunctionOutputDto> aggregate(AggregationInputDto request) {
         return Uni.createFrom().item(Helpers.aggregate(request));
     }
 
     @POST
     @Path("/hodrickPrescott")
     @Override
-    public Uni<ToolkitMessages.HodrickPrescottOutputDto> hodrickPrescott(ToolkitMessages.HodrickPrescottInputDto request) {
+    public Uni<HodrickPrescottOutputDto> hodrickPrescott(HodrickPrescottInputDto request) {
         return Uni.createFrom().item(Helpers.hodrickPrescott(request));
     }
 
@@ -146,42 +146,42 @@ public class TsFunctionsService implements TsFunctions {
     @POST
     @Path("/buildTsData")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutputDto> buildTsData(ToolkitMessages.BuildTsDataInputDto request) {
+    public Uni<TsFunctionOutputDto> buildTsData(BuildTsDataInputDto request) {
         return Uni.createFrom().item(Helpers.buildTsData(request));
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutputDto> normalizeStream(Multi<ToolkitMessages.TsFunctionInputDto> request) {
+    public Multi<TsFunctionOutputDto> normalizeStream(Multi<TsFunctionInputDto> request) {
         return request.onItem().transform(Helpers::normalize);
     }
 
     @Override
-    public Multi<ToolkitMessages.DescriptiveStatisticsDto> statisticsStream(Multi<ToolkitMessages.TsFunctionInputDto> request) {
+    public Multi<DescriptiveStatisticsDto> statisticsStream(Multi<TsFunctionInputDto> request) {
         return request.onItem().transform(Helpers::statistics);
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutputDto> pctStream(Multi<ToolkitMessages.PctInputDto> request) {
+    public Multi<TsFunctionOutputDto> pctStream(Multi<PctInputDto> request) {
         return request.onItem().transform(Helpers::pct);
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutputDto> deltaStream(Multi<ToolkitMessages.DeltaInputDto> request) {
+    public Multi<TsFunctionOutputDto> deltaStream(Multi<DeltaInputDto> request) {
         return request.onItem().transform(Helpers::delta);
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutputDto> aggregateStream(Multi<ToolkitMessages.AggregationInputDto> request) {
+    public Multi<TsFunctionOutputDto> aggregateStream(Multi<AggregationInputDto> request) {
         return request.onItem().transform(Helpers::aggregate);
     }
 
     @Override
-    public Multi<ToolkitMessages.HodrickPrescottOutputDto> hodrickPrescottStream(Multi<ToolkitMessages.HodrickPrescottInputDto> request) {
+    public Multi<HodrickPrescottOutputDto> hodrickPrescottStream(Multi<HodrickPrescottInputDto> request) {
         return request.onItem().transform(Helpers::hodrickPrescott);
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutputDto> buildTsDataStream(Multi<ToolkitMessages.BuildTsDataInputDto> request) {
+    public Multi<TsFunctionOutputDto> buildTsDataStream(Multi<BuildTsDataInputDto> request) {
         return request.onItem().transform(Helpers::buildTsData);
     }
 
@@ -222,17 +222,17 @@ public class TsFunctionsService implements TsFunctions {
     @POST
     @Path("/buildTsDataTable")
     @Override
-    public Uni<ToolkitMessages.BuildTsDataTableOutputDto> buildTsDataTable(ToolkitMessages.BuildTsDataTableInputDto request) {
+    public Uni<BuildTsDataTableOutputDto> buildTsDataTable(BuildTsDataTableInputDto request) {
         return Uni.createFrom().item(Helpers.buildTsDataTable(request));
     }
 
     @Override
-    public Uni<ToolkitMessages.TemporalDisaggregationResultsDto> processTemporalDisaggregation(ToolkitMessages.TemporalDisaggregationRequestDto request) {
+    public Uni<TemporalDisaggregationResultsDto> processTemporalDisaggregation(TemporalDisaggregationRequestDto request) {
         return Uni.createFrom().item(Helpers.processTemporalDisaggregation(request));
     }
 
     @Override
-    public Uni<ToolkitMessages.MatrixDto> tramoForecast(ToolkitMessages.TramoForecastRequestDto request) {
+    public Uni<MatrixDto> tramoForecast(TramoForecastRequestDto request) {
         return Uni.createFrom().item(Helpers.tramoForecast(request));
     }
 }
