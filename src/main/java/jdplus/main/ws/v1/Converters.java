@@ -811,6 +811,22 @@ class Converters {
             hol.add(toFixedDay(fd));
         });
 
+        dto.getFixedWeekDaysList().forEach(fd -> {
+            hol.add(toFixedWeekDay(fd));
+        });
+
+        dto.getEasterRelatedDaysList().forEach(ed -> {
+            hol.add(toEasterRelatedDay(ed));
+        });
+
+        dto.getPrespecifiedHolidaysList().forEach(pd -> {
+            hol.add(toPrespecifiedHoliday(pd));
+        });
+
+        dto.getSingleDatesList().forEach(sd -> {
+            hol.add(toSingleDate(sd));
+        });
+
         return new Calendar(hol.toArray(Holiday[]::new), dto.getMeanCorrection());
     }
 
