@@ -545,9 +545,11 @@
                             <!-- 2.5 upgradable source code -->
                             <javaVersion>${maven.compiler.release}</javaVersion>
                             <!-- 2.6 forbidden source code -->
-                            <exclusionPatterns>
-                                <!--<exclusionPattern>com/google/common/base/Optional.*</exclusionPattern>-->
-                            </exclusionPatterns>
+                            <ignoreClassNamePatterns>
+                                <!-- Bulletproof pattern matching trailing 'Protos' and its nested classes -->
+                                <ignoreClassNamePattern>.*/[^/]*Protos(\$.*)?</ignoreClassNamePattern>
+                                <ignoreClassNamePattern>.*/[^/]*ToolkitMessages(\$.*)?</ignoreClassNamePattern>
+                            </ignoreClassNamePatterns>
                         </configuration>
                     </execution>
                 </executions>
