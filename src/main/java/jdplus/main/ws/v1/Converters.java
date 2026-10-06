@@ -1,22 +1,29 @@
 package jdplus.main.ws.v1;
 
 import jdplus.benchmarking.base.core.univariate.ResidualsDiagnostics;
+import jdplus.toolkit.base.api.arima.SarimaSpec;
+import jdplus.toolkit.base.api.data.*;
 import jdplus.toolkit.base.api.data.AggregationType;
-import jdplus.toolkit.base.api.data.DoubleSeq;
-import jdplus.toolkit.base.api.data.Parameter;
 import jdplus.toolkit.base.api.data.ParameterType;
 import jdplus.toolkit.base.api.math.functions.ObjectiveFunctionPoint;
+import jdplus.toolkit.base.api.modelling.TransformationType;
 import jdplus.toolkit.base.api.timeseries.*;
-import jdplus.toolkit.base.api.timeseries.regression.TsVariable;
+import jdplus.toolkit.base.api.timeseries.calendars.LengthOfPeriodType;
+import jdplus.toolkit.base.api.timeseries.calendars.TradingDaysType;
+import jdplus.toolkit.base.api.timeseries.regression.*;
 import jdplus.toolkit.base.api.timeseries.util.ObsGathering;
 import jdplus.toolkit.base.core.stats.likelihood.DiffuseConcentratedLikelihood;
 import jdplus.toolkit.base.core.stats.likelihood.DiffuseLikelihoodStatistics;
+import jdplus.toolkit.base.core.stats.tests.Mean;
 import jdplus.toolkit.base.core.stats.tests.NiidTests;
-import jdplus.tramoseats.base.api.tramo.TramoSpec;
+import jdplus.tramoseats.base.api.tramo.*;
+import lombok.NonNull;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 class Converters {
 
@@ -116,7 +123,7 @@ class Converters {
             case Sum -> jdplus.main.ws.v1.AggregationType.AGGREGATION_SUM;
             case Average -> jdplus.main.ws.v1.AggregationType.AGGREGATION_AVERAGE;
             case First -> jdplus.main.ws.v1.AggregationType.AGGREGATION_FIRST;
-            case Last ->jdplus.main.ws.v1. AggregationType.AGGREGATION_LAST;
+            case Last -> jdplus.main.ws.v1.AggregationType.AGGREGATION_LAST;
             case Max -> jdplus.main.ws.v1.AggregationType.AGGREGATION_MAX;
             case Min -> jdplus.main.ws.v1.AggregationType.AGGREGATION_MIN;
             default -> throw new IllegalArgumentException(value.name());
@@ -139,10 +146,20 @@ class Converters {
     public static jdplus.main.ws.v1.ParameterType fromParameterType(ParameterType value) {
         return switch (value) {
             case Undefined -> jdplus.main.ws.v1.ParameterType.PARAMETER_UNDEFINED;
-            case Initial ->jdplus.main.ws.v1. ParameterType.PARAMETER_INITIAL;
-            case Fixed ->jdplus.main.ws.v1.ParameterType.PARAMETER_FIXED;
+            case Initial -> jdplus.main.ws.v1.ParameterType.PARAMETER_INITIAL;
+            case Fixed -> jdplus.main.ws.v1.ParameterType.PARAMETER_FIXED;
             case Estimated -> jdplus.main.ws.v1.ParameterType.PARAMETER_ESTIMATED;
             default -> jdplus.main.ws.v1.ParameterType.PARAMETER_UNUSED;
+        };
+    }
+
+    public static ParameterType toParameterType(jdplus.main.ws.v1.ParameterType value) {
+        return switch (value) {
+            case PARAMETER_UNDEFINED -> ParameterType.Undefined;
+            case PARAMETER_INITIAL -> ParameterType.Initial;
+            case PARAMETER_FIXED -> ParameterType.Fixed;
+            case PARAMETER_ESTIMATED -> ParameterType.Estimated;
+            default -> null;
         };
     }
 
@@ -289,6 +306,16 @@ class Converters {
         return result.build();
     }
 
+    public static Parameter toParameter(ParameterDto dto) {
+        return Parameter.of(dto.getValue(), toParameterType(dto.getType()));
+    }
+
+    public static Parameter[] toParameter(List<ParameterDto> dtos) {
+        return dtos.stream()
+                .map(Converters::toParameter)
+                .toArray(Parameter[]::new);
+    }
+
     public static DiffuseLikelihoodStatisticsDto fromDiffuseLikelihoodStatistics(DiffuseLikelihoodStatistics value) {
         DiffuseLikelihoodStatisticsDto.Builder result = DiffuseLikelihoodStatisticsDto
                 .newBuilder()
@@ -367,6 +394,369 @@ class Converters {
     }
 
     public static TramoSpec ToTramoSpec(TramoSpecDto dto) {
-        return null;
+        return TramoSpec.builder()
+                .frequency(dto.getBasic().getAnnualFrequency())
+                .transform(toTransformSpec(dto.getBasic(), dto.getTransform()))
+                .outliers(toOutlierSpec(dto.getOutlier()))
+                .arima(toSarimaSpec(dto.getArima()))
+                .autoModel(toAutoModelSpec(dto.getAutomodel())) // Check
+                .regression(toRegressionSpec(dto.getRegression(),dto.getOutlier().getTcrate()))
+                .estimate(toEstimateSpec(dto.getEstimate()))
+                .buildWithoutValidation();
+    }
+
+    private static  EstimateSpec toEstimateSpec(EstimateSpecDto dto) {
+        return EstimateSpec.builder()
+                .span(toTimeSelector(dto.getSpan()))
+                .tol(dto.getTol())
+                .maximumLikelihood(dto.getMl())
+                .ubp(dto.getUbp())
+                .build();
+    }
+
+    public static TimeSelector.SelectionType toSelectionType(SelectionType value) {
+        if (value == SelectionType.SPAN_ALL) {
+            return TimeSelector.SelectionType.All;
+        } else if (value == SelectionType.SPAN_FROM) {
+            return TimeSelector.SelectionType.From;
+        } else if (value == SelectionType.SPAN_TO) {
+            return TimeSelector.SelectionType.To;
+        } else if (value == SelectionType.SPAN_BETWEEN) {
+            return TimeSelector.SelectionType.Between;
+        } else if (value == SelectionType.SPAN_LAST) {
+            return TimeSelector.SelectionType.Last;
+        } else if (value == SelectionType.SPAN_FIRST) {
+            return TimeSelector.SelectionType.First;
+        } else if (value == SelectionType.SPAN_EXCLUDING) {
+            return TimeSelector.SelectionType.Excluding;
+        } else if (value == SelectionType.SPAN_NONE) {
+            return TimeSelector.SelectionType.None;
+        }
+
+        return TimeSelector.SelectionType.None;
+    }
+
+    public static LocalDateTime toLocalDateTime(DateDto value) {
+        return LocalDateTime.of(value.getYear(), value.getMonth(), value.getDay(), 0, 0, 0);
+    }
+
+    public static TimeSelector toTimeSelector(TimeSelectorDto dto) {
+        return TimeSelector.builder().type(toSelectionType(dto.getType()))
+                .n0(dto.getN0())
+                .n1(dto.getN1())
+                .d0(toLocalDateTime(dto.getD0()))
+                .d1(toLocalDateTime(dto.getD1()))
+                .build();
+    }
+
+    public static TransformationType toTransformationType(Transformation value) {
+        return switch (value) {
+            case FN_LOG -> TransformationType.Log;
+            case FN_AUTO -> TransformationType.Auto;
+            default -> TransformationType.None;
+        };
+    }
+
+    public static LengthOfPeriodType toLengthOfPeriodType(LengthOfPeriod value) {
+        return switch (value) {
+            case LP_LEAPYEAR -> LengthOfPeriodType.LeapYear;
+            case LP_LENGTHOFPERIOD -> LengthOfPeriodType.LengthOfPeriod;
+            default -> LengthOfPeriodType.None;
+        };
+    }
+
+    public static TransformSpec toTransformSpec(BasicSpecDto basicSpecDto, TransformSpecDto dto) {
+        return TransformSpec.builder()
+                .span(toTimeSelector( basicSpecDto.getSpan()))
+                .preliminaryCheck(basicSpecDto.getPreliminaryCheck())
+                .function(toTransformationType(dto.getTransformation()))
+                .fct(dto.getFct())
+                .adjust(toLengthOfPeriodType(dto.getAdjust()))
+                .outliersCorrection(dto.getOutliersCorrection())
+                .build();
+    }
+
+    public static OutlierSpec toOutlierSpec(OutlierSpecDto dto) {
+        if (!dto.getEnabled()) {
+            return OutlierSpec.DEFAULT_DISABLED;
+        }
+
+        return OutlierSpec.builder()
+                .span(toTimeSelector(dto.getSpan()))
+                .ao(dto.getAo())
+                .ls(dto.getLs())
+                .tc(dto.getTc())
+                .so(dto.getSo())
+                .criticalValue(dto.getVa())
+                .deltaTC(dto.getTcrate())
+                .maximumLikelihood(dto.getMl())
+                .build();
+    }
+
+    public static SarimaSpec toSarimaSpec(SarimaSpecDto dto) {
+        return SarimaSpec.builder()
+                .period(dto.getPeriod())
+                .phi(toParameter(dto.getPhiList()))
+                .d(dto.getD())
+                .theta(toParameter(dto.getThetaList()))
+                .bphi(toParameter(dto.getBphiList()))
+                .bd(dto.getBd())
+                .btheta(toParameter(dto.getBthetaList()))
+                .build();
+    }
+
+    public static AutoModelSpec toAutoModelSpec(AutoModelSpecDto dto) {
+        return AutoModelSpec.builder()
+                .enabled(dto.getEnabled())
+                .cancel(dto.getCancel())
+                .ub1(dto.getUb1())
+                .ub2(dto.getUb2())
+                .pcr(dto.getPcr())
+                .pc(dto.getPc())
+                .tsig(dto.getTsig())
+                .acceptDefault(dto.getAcceptDef())
+                .amiCompare(dto.getAmiCompare())
+                .build();
+    }
+
+    public static RegressionSpec toRegressionSpec(RegressionSpecDto dto, double tc) {
+        CalendarSpec.Builder cBuilder = CalendarSpec.builder();
+
+        if (dto.hasEaster()) {
+            cBuilder.easter(toEasterSpec(dto.getEaster()));
+        }
+
+        if (dto.hasTd()) {
+            cBuilder.tradingDays(toTradingDaysSpec(dto.getTd()));
+        }
+
+        MeanSpec mean = MeanSpec.none();
+        if (dto.hasMean()) {
+            Parameter p = toParameter(dto.getMean());
+            if (p != null) {
+                boolean check = dto.getCheckMean();
+                mean = MeanSpec.builder()
+                        .trendConstant(true)
+                        .test(check)
+                        .coefficient(p)
+                        .build();
+            }
+        }
+
+        RegressionSpec.Builder builder = RegressionSpec.builder()
+                .mean(mean)
+                .calendar(cBuilder.build());
+
+        int n = dto.getOutliersCount();
+        for (int i = 0; i < n; ++i) {
+            OutlierDto outlier = dto.getOutliers(i);
+            builder.outlier(toVariable(outlier, tc));
+        }
+
+        n = dto.getUsersCount();
+        for (int i = 0; i < n; ++i) {
+            TsVariableDto var = dto.getUsers(i);
+            builder.userDefinedVariable(toVariable(var));
+        }
+
+        n = dto.getInterventionsCount();
+        for (int i = 0; i < n; ++i) {
+            InterventionVariableDto var = dto.getInterventions(i);
+            builder.interventionVariable(toVariable(var));
+        }
+
+        n = dto.getRampsCount();
+        for (int i = 0; i < n; ++i) {
+            RampDto var = dto.getRamps(i);
+            builder.ramp(toVariable(var));
+        }
+
+        return builder
+                .build();
+    }
+
+    public static EasterSpec toEasterSpec(EasterSpecDto dto) {
+        var builder = EasterSpec.builder()
+                .duration(dto.getDuration())
+                .type(toEasterSpecType(dto.getType()))
+                .test(dto.getTest())
+                .julian(dto.getJulian());
+
+        if (dto.hasCoefficient())
+            builder.coefficient(toParameter(dto.getCoefficient()));
+
+        return builder.build();
+    }
+
+    public static EasterSpec.Type toEasterSpecType(EasterType value) {
+        return switch (value) {
+            case EASTER_STANDARD -> EasterSpec.Type.Standard;
+            case EASTER_INCLUDEEASTER -> EasterSpec.Type.IncludeEaster;
+            case EASTER_INCLUDEEASTERMONDAY -> EasterSpec.Type.IncludeEasterMonday;
+            default -> EasterSpec.Type.Unused;
+        };
+    }
+
+    public static TradingDaysSpec toTradingDaysSpec(TradingDaysSpecDto dto) {
+        String holidays = dto.getHolidays();
+        TradingDaysType td = toTradingDaysType(dto.getTd());
+        LengthOfPeriodType lp = toLengthOfPeriodType(dto.getLp());
+        Parameter lpc = toParameter(dto.getLpcoefficient());
+        Parameter[] tdc = toParameter(dto.getTdcoefficientsList());
+        boolean test = isTest(dto);
+
+        if (!holidays.isEmpty()) {
+            TradingDaysSpec.AutoMethod auto = toAutoMethod(dto.getAuto());
+            if (auto != TradingDaysSpec.AutoMethod.UNUSED) {
+                return TradingDaysSpec.automaticHolidays(holidays, lp, auto, dto.getPtest(), dto.getAutoAdjust());
+            }
+            if (test) {
+                return TradingDaysSpec.holidays(holidays, td, lp, toRegressionTestType(dto.getTest()), dto.getAutoAdjust());
+            } else {
+                return TradingDaysSpec.holidays(holidays, td, lp, tdc, lpc);
+            }
+        }
+
+        int nusers = dto.getUsersCount();
+        if (nusers > 0) {
+            String[] users = new String[nusers];
+            for (int i = 0; i < nusers; ++i) {
+                users[i] = dto.getUsers(i);
+            }
+            if (test) {
+                return TradingDaysSpec.userDefined(users, toRegressionTestType(dto.getTest()));
+            } else {
+                return TradingDaysSpec.userDefined(users, tdc);
+            }
+        }
+
+        int w = dto.getW();
+        if (w > 0) {
+            return TradingDaysSpec.stockTradingDays(w, toRegressionTestType(dto.getTest()));
+        }
+
+        TradingDaysSpec.AutoMethod auto = toAutoMethod(dto.getAuto());
+        if (auto != TradingDaysSpec.AutoMethod.UNUSED) {
+            return TradingDaysSpec.automatic(lp, auto, dto.getPtest(), dto.getAutoAdjust());
+        } else if (td == TradingDaysType.NONE) {
+            return TradingDaysSpec.none();
+        } else {
+            if (test) {
+                return TradingDaysSpec.td(td, lp, toRegressionTestType(dto.getTest()), dto.getAutoAdjust());
+            } else {
+                return TradingDaysSpec.td(td, lp, tdc, lpc);
+            }
+        }
+    }
+
+    private static boolean isTest(TradingDaysSpecDto dto) {
+        return dto.getAuto() != AutomaticTradingDays.TD_AUTO_NO
+                || dto.getTest() == TradingDaysTest.TD_TEST_JOINT_F
+                || dto.getTest() == TradingDaysTest.TD_TEST_SEPARATE_T;
+    }
+
+    public static TradingDaysType toTradingDaysType(TradingDays value) {
+        return switch (value) {
+            case TD7 -> TradingDaysType.TD7;
+            case TD4 -> TradingDaysType.TD4;
+            case TD3 -> TradingDaysType.TD3;
+            case TD3C -> TradingDaysType.TD3c;
+            case TD2C -> TradingDaysType.TD2c;
+            case TD2 -> TradingDaysType.TD2;
+            default -> TradingDaysType.NONE;
+        };
+    }
+
+    public static TradingDaysSpec.AutoMethod toAutoMethod(AutomaticTradingDays value) {
+        return switch (value) {
+            case TD_AUTO_FTEST -> TradingDaysSpec.AutoMethod.FTEST;
+            case TD_AUTO_WALD -> TradingDaysSpec.AutoMethod.WALD;
+            case TD_AUTO_AIC -> TradingDaysSpec.AutoMethod.AIC;
+            case TD_AUTO_BIC -> TradingDaysSpec.AutoMethod.BIC;
+            default -> TradingDaysSpec.AutoMethod.UNUSED;
+        };
+    }
+
+    public static RegressionTestType toRegressionTestType(TradingDaysTest value) {
+        return switch (value) {
+            case TD_TEST_JOINT_F -> RegressionTestType.Joint_F;
+            case TD_TEST_SEPARATE_T -> RegressionTestType.Separate_T;
+            default -> RegressionTestType.None;
+        };
+    }
+
+    public static Variable<IOutlier> toVariable(OutlierDto outlier, double tc) {
+        LocalDate ldt = toLocalDate(outlier.getPosition());
+        IOutlier o;
+        switch (outlier.getCode()) {
+            case "ao":
+            case "AO":
+                o = new AdditiveOutlier(ldt.atStartOfDay());
+                break;
+            case "ls":
+            case "LS":
+                o = new LevelShift(ldt.atStartOfDay(), true);
+                break;
+            case "tc":
+            case "TC":
+                o = new TransitoryChange(ldt.atStartOfDay(), tc);
+                break;
+            case "so":
+            case "SO":
+                o = new PeriodicOutlier(ldt.atStartOfDay(), 0, true);
+                break;
+
+            default:
+                return null;
+        }
+        Parameter c = toParameter(outlier.getCoefficient());
+        return Variable.<IOutlier>builder()
+                .core(o)
+                .name(outlier.getName())
+                .coefficients(c == null ? null : new Parameter[]{c})
+                .attributes(outlier.getMetadataMap())
+                .build();
+    }
+
+    public static Variable<TsContextVariable> toVariable(TsVariableDto v) {
+        Parameter c = toParameter(v.getCoefficient());
+        return Variable.<TsContextVariable>builder()
+                .name(v.getName())
+                .core(new TsContextVariable(v.getId(), v.getLag()))
+                .attributes(v.getMetadataMap())
+                .coefficients(c == null ? null : new Parameter[]{c})
+                .build();
+    }
+
+    public static Variable<Ramp> toVariable(RampDto v) {
+        LocalDate start = toLocalDate(v.getStart());
+        LocalDate end = toLocalDate(v.getEnd());
+        Parameter c = toParameter(v.getCoefficient());
+        return Variable.<Ramp>builder()
+                .name(v.getName())
+                .core(new Ramp(start.atStartOfDay(), end.atStartOfDay()))
+                .attributes(v.getMetadataMap())
+                .coefficients(c == null ? null : new Parameter[]{c})
+                .build();
+    }
+
+    public static Variable<InterventionVariable> toVariable(InterventionVariableDto v) {
+        InterventionVariable.Builder builder = InterventionVariable.builder()
+                .delta(v.getDelta())
+                .deltaSeasonal(v.getSeasonalDelta());
+        int n = v.getSequencesCount();
+        for (int i = 0; i < n; ++i) {
+           InterventionVariableDto.SequenceDto seq = v.getSequences(i);
+            LocalDate start = toLocalDate(seq.getStart());
+            LocalDate end = toLocalDate(seq.getEnd());
+            builder.sequence(Range.of(start.atStartOfDay(), end.atStartOfDay()));
+        }
+        Parameter c = toParameter(v.getCoefficient());
+        return Variable.<InterventionVariable>builder()
+                .name(v.getName())
+                .core(builder.build())
+                .coefficients(c == null ? null : new Parameter[]{c})
+                .attributes(v.getMetadataMap())
+                .build();
     }
 }
