@@ -8,10 +8,11 @@ import jdplus.toolkit.base.api.data.ParameterType;
 import jdplus.toolkit.base.api.math.functions.ObjectiveFunctionPoint;
 import jdplus.toolkit.base.api.modelling.TransformationType;
 import jdplus.toolkit.base.api.timeseries.*;
-import jdplus.toolkit.base.api.timeseries.calendars.LengthOfPeriodType;
-import jdplus.toolkit.base.api.timeseries.calendars.TradingDaysType;
+import jdplus.toolkit.base.api.timeseries.calendars.*;
+import jdplus.toolkit.base.api.timeseries.calendars.Calendar;
 import jdplus.toolkit.base.api.timeseries.regression.*;
 import jdplus.toolkit.base.api.timeseries.util.ObsGathering;
+import jdplus.toolkit.base.api.util.WeightedItem;
 import jdplus.toolkit.base.core.stats.likelihood.DiffuseConcentratedLikelihood;
 import jdplus.toolkit.base.core.stats.likelihood.DiffuseLikelihoodStatistics;
 import jdplus.toolkit.base.core.stats.tests.Mean;
@@ -19,11 +20,10 @@ import jdplus.toolkit.base.core.stats.tests.NiidTests;
 import jdplus.tramoseats.base.api.tramo.*;
 import lombok.NonNull;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 class Converters {
 
@@ -101,6 +101,11 @@ class Converters {
     private static DoubleSeq toValues(List<Double> value) {
         return DoubleSeq.onMapping(value.size(), value::get);
     }
+
+    public static TsMoniker toTsMoniker(TsMonikerDto moniker) {
+        return TsMoniker.of(moniker.getSource(), moniker.getId());
+    }
+
 
     public static TsDataDto fromTsData(TsData value) {
         return TsDataDto
@@ -400,12 +405,12 @@ class Converters {
                 .outliers(toOutlierSpec(dto.getOutlier()))
                 .arima(toSarimaSpec(dto.getArima()))
                 .autoModel(toAutoModelSpec(dto.getAutomodel())) // Check
-                .regression(toRegressionSpec(dto.getRegression(),dto.getOutlier().getTcrate()))
+                .regression(toRegressionSpec(dto.getRegression(), dto.getOutlier().getTcrate()))
                 .estimate(toEstimateSpec(dto.getEstimate()))
                 .buildWithoutValidation();
     }
 
-    private static  EstimateSpec toEstimateSpec(EstimateSpecDto dto) {
+    private static EstimateSpec toEstimateSpec(EstimateSpecDto dto) {
         return EstimateSpec.builder()
                 .span(toTimeSelector(dto.getSpan()))
                 .tol(dto.getTol())
@@ -467,7 +472,7 @@ class Converters {
 
     public static TransformSpec toTransformSpec(BasicSpecDto basicSpecDto, TransformSpecDto dto) {
         return TransformSpec.builder()
-                .span(toTimeSelector( basicSpecDto.getSpan()))
+                .span(toTimeSelector(basicSpecDto.getSpan()))
                 .preliminaryCheck(basicSpecDto.getPreliminaryCheck())
                 .function(toTransformationType(dto.getTransformation()))
                 .fct(dto.getFct())
@@ -746,7 +751,7 @@ class Converters {
                 .deltaSeasonal(v.getSeasonalDelta());
         int n = v.getSequencesCount();
         for (int i = 0; i < n; ++i) {
-           InterventionVariableDto.SequenceDto seq = v.getSequences(i);
+            InterventionVariableDto.SequenceDto seq = v.getSequences(i);
             LocalDate start = toLocalDate(seq.getStart());
             LocalDate end = toLocalDate(seq.getEnd());
             builder.sequence(Range.of(start.atStartOfDay(), end.atStartOfDay()));
@@ -758,5 +763,141 @@ class Converters {
                 .coefficients(c == null ? null : new Parameter[]{c})
                 .attributes(v.getMetadataMap())
                 .build();
+    }
+
+    public static ModellingContext toModellingContext(ModellingContextDto dto) {
+        ModellingContext result = new ModellingContext();
+
+        Map<String, CalendarDefinitionDto> cmgr = dto.getCalendarsMap();
+        for (Map.Entry<String, CalendarDefinitionDto> entry : cmgr.entrySet()) {
+            result.getCalendars().set(entry.getKey(), toCalendarDefinition(entry.getValue()));
+        }
+
+        Map<String, TsDataSuppliersDto> smap = dto.getVariablesMap();
+        for (Map.Entry<String, TsDataSuppliersDto> entry : smap.entrySet()) {
+            result.getTsVariableManagers().set(entry.getKey(), toTsDataSuppliers(entry.getValue()));
+        }
+
+        return result;
+    }
+
+    private static CalendarDefinition toCalendarDefinition(CalendarDefinitionDto dto) {
+        if (dto.hasCalendar()) {
+            return toCalendar(dto.getCalendar());
+        } else if (dto.hasChainedCalendar()) {
+            return toChainedCalendar(dto.getChainedCalendar());
+        } else if (dto.hasWeightedCalendar()) {
+            return toWeightedCalendar(dto.getWeightedCalendar());
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private static CompositeCalendar toWeightedCalendar(WeightedCalendarDto dto) {
+        WeightedItem[] items = dto.getItemsList().stream()
+                .map(item -> new WeightedItem<String>(item.getCalendar(), item.getWeight()))
+                .toArray(WeightedItem[]::new);
+        return new CompositeCalendar(items);
+    }
+
+    private static ChainedCalendar toChainedCalendar(ChainedCalendarDto dto) {
+        return new ChainedCalendar(dto.getCalendar1(), dto.getCalendar2(), toLocalDate(dto.getBreakDate()));
+    }
+
+    private static Calendar toCalendar(CalendarDto dto) {
+        List<Holiday> hol = new ArrayList<>();
+
+        dto.getFixedDaysList().forEach(fd -> {
+            hol.add(toFixedDay(fd));
+        });
+
+        return new Calendar(hol.toArray(Holiday[]::new), dto.getMeanCorrection());
+    }
+
+    private static FixedDay toFixedDay(FixedDayDto dto) {
+        return new FixedDay(dto.getMonth(), dto.getDay(), dto.getWeight(), toValidityPeriod(dto.getValidity()));
+    }
+
+    private static SingleDate toSingleDate(SingleDateDto dto) {
+        return new SingleDate(toLocalDate(dto.getDate()), dto.getWeight());
+    }
+
+    private static FixedWeekDay toFixedWeekDay(FixedWeekDayDto dto) {
+        return new FixedWeekDay(dto.getMonth(), dto.getPosition(), DayOfWeek.of(dto.getWeekday()), dto.getWeight(), toValidityPeriod(dto.getValidity()));
+    }
+
+    private static EasterRelatedDay toEasterRelatedDay(EasterRelatedDayDto dto) {
+        if (dto.getJulian()) {
+            return EasterRelatedDay.julian(dto.getOffset(), dto.getWeight(), toValidityPeriod(dto.getValidity()));
+        } else {
+            return EasterRelatedDay.gregorian(dto.getOffset(), dto.getWeight(), toValidityPeriod(dto.getValidity()));
+        }
+    }
+
+    private static PrespecifiedHoliday toPrespecifiedHoliday(PrespecifiedHolidayDto dto) {
+        DayEvent ce;
+        boolean julian = false;
+        if (dto.getEvent() == CalendarEvent.HOLIDAY_JULIANEASTER){
+            ce = DayEvent.Easter;
+            julian = true;
+        } else {
+            ce = toDayEvent(dto.getEvent());
+        }
+        return PrespecifiedHoliday.builder()
+                .event(ce)
+                .offset(dto.getOffset())
+                .julian(julian)
+                .weight(dto.getWeight())
+                .validityPeriod(toValidityPeriod(dto.getValidity()))
+                .build();
+    }
+
+    private static ValidityPeriod toValidityPeriod(ValidityPeriodDto dto) {
+        return ValidityPeriod.between(toLocalDate(dto.getStart()), toLocalDate(dto.getEnd()));
+    }
+
+    public static DayEvent toDayEvent(CalendarEvent hol) {
+        return switch (hol) {
+            case HOLIDAY_NEWYEAR -> DayEvent.NewYear;
+            case HOLIDAY_SHROVEMONDAY -> DayEvent.ShroveMonday;
+            case HOLIDAY_SHROVETUESDAY -> DayEvent.ShroveTuesday;
+            case HOLIDAY_ASHWEDNESDAY -> DayEvent.AshWednesday;
+            case HOLIDAY_EASTER -> DayEvent.Easter;
+            case HOLIDAY_MAUNDYTHURSDAY -> DayEvent.MaundyThursday;
+            case HOLIDAY_GOODFRIDAY -> DayEvent.GoodFriday;
+            case HOLIDAY_EASTERMONDAY -> DayEvent.EasterMonday;
+            case HOLIDAY_ASCENSION -> DayEvent.Ascension;
+            case HOLIDAY_PENTECOST -> DayEvent.Pentecost;
+            case HOLIDAY_CORPUSCHRISTI -> DayEvent.CorpusChristi;
+            case HOLIDAY_WHITMONDAY -> DayEvent.WhitMonday;
+            case HOLIDAY_MAYDAY -> DayEvent.MayDay;
+            case HOLIDAY_ASSUMPTION -> DayEvent.Assumption;
+            case HOLIDAY_LABORDAY -> DayEvent.LaborDay;
+            case HOLIDAY_HALLOWEEN -> DayEvent.Halloween;
+            case HOLIDAY_ALLSAINTSDAY -> DayEvent.AllSaintsDay;
+            case HOLIDAY_ARMISTICE -> DayEvent.Armistice;
+            case HOLIDAY_THANKSGIVING -> DayEvent.ThanksGiving;
+            case HOLIDAY_CHRISTMAS -> DayEvent.Christmas;
+            default -> null;
+        };
+    }
+
+
+    private static TsDataSuppliers toTsDataSuppliers(TsDataSuppliersDto dto) {
+        TsDataSuppliers s = new TsDataSuppliers();
+        for (TsDataSuppliersDto.ItemDto item : dto.getItemsList()) {
+            s.set(item.getName(), toItem(item));
+        }
+        return s;
+    }
+
+    private static TsDataSupplier toItem(TsDataSuppliersDto.ItemDto dto) {
+        if (dto.hasData()) {
+            return new StaticTsDataSupplier(toTsData(dto.getData()));
+        } else if (dto.hasDynamicData()) {
+            return new DynamicTsDataSupplier(toTsMoniker(dto.getDynamicData().getMoniker()), toTsData(dto.getDynamicData().getCurrent()));
+        } else {
+            return null;
+        }
     }
 }

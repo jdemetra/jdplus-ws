@@ -243,7 +243,10 @@ class Helpers {
         }
     }
 
-    public static TramoSpec getSpecFromRequest(TramoForecastRequestDto request) {
+    /**
+     * Get TramoSpec from request, with simplified specs or full ones.
+     */
+    private static TramoSpec getSpecFromRequest(TramoForecastRequestDto request) {
         return switch (request.getSpecCase()) {
             case DEFSPEC -> TramoSpec.fromString(request.getDefSpec());
             case FULLSPEC -> Converters.ToTramoSpec(request.getFullSpec());
@@ -251,14 +254,18 @@ class Helpers {
         };
     }
 
+
     public static MatrixDto tramoForecast(TramoForecastRequestDto request) {
         TsData series = Converters.toTsData(request.getSeries());
         int nForecasts = request.getNForecasts();
-
         TramoSpec spec = getSpecFromRequest(request);
-
-        // TODO: modelling context
-        TramoKernel kernel = TramoKernel.of(spec, null);
+        TramoKernel kernel = null;
+        if ( request.hasModellingContext()){
+            kernel = TramoKernel.of(spec, toModellingContext(request.getModellingContext()));
+        }
+        else {
+            kernel = TramoKernel.of(spec, null);
+        }
 
         Forecast f = new Forecast(kernel, nForecasts);
         if (!f.process(series.cleanExtremities())) {
