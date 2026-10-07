@@ -24,7 +24,7 @@ public class TemporalDisaggregationMapping {
             result.setRegressionEffects(TsDataMapping.toDto(value.getRegressionEffects()));
 
         Arrays.stream(value.getIndicators())
-                .forEach(indicator -> result.addIndicators(VariableMapping.toDto(indicator)));
+                .forEach(indicator -> result.addIndicators(VariableMapping.toTsVariableDto(indicator)));
 
         return result.build();
     }

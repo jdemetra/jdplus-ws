@@ -40,6 +40,53 @@ public class EnumsMapping {
         };
     }
 
+    public static CalendarEvent toDto(DayEvent hol){
+        return switch (hol) {
+            case NewYear ->
+                    CalendarEvent.HOLIDAY_NEWYEAR;
+            case ShroveMonday ->
+                    CalendarEvent.HOLIDAY_SHROVEMONDAY;
+            case ShroveTuesday ->
+                    CalendarEvent.HOLIDAY_SHROVETUESDAY;
+            case AshWednesday ->
+                    CalendarEvent.HOLIDAY_ASHWEDNESDAY;
+            case Easter ->
+                    CalendarEvent.HOLIDAY_EASTER;
+            case MaundyThursday ->
+                    CalendarEvent.HOLIDAY_MAUNDYTHURSDAY;
+            case GoodFriday ->
+                    CalendarEvent.HOLIDAY_GOODFRIDAY;
+            case EasterMonday ->
+                    CalendarEvent.HOLIDAY_EASTERMONDAY;
+            case Ascension ->
+                    CalendarEvent.HOLIDAY_ASCENSION;
+            case Pentecost ->
+                    CalendarEvent.HOLIDAY_PENTECOST;
+            case CorpusChristi ->
+                    CalendarEvent.HOLIDAY_CORPUSCHRISTI;
+            case WhitMonday ->
+                    CalendarEvent.HOLIDAY_WHITMONDAY;
+            case MayDay ->
+                    CalendarEvent.HOLIDAY_MAYDAY;
+            case Assumption ->
+                    CalendarEvent.HOLIDAY_ASSUMPTION;
+            case LaborDay ->
+                    CalendarEvent.HOLIDAY_LABORDAY;
+            case Halloween ->
+                    CalendarEvent.HOLIDAY_HALLOWEEN;
+            case AllSaintsDay ->
+                    CalendarEvent.HOLIDAY_ALLSAINTSDAY;
+            case Armistice ->
+                    CalendarEvent.HOLIDAY_ARMISTICE;
+            case ThanksGiving ->
+                    CalendarEvent.HOLIDAY_THANKSGIVING;
+            case Christmas ->
+                    CalendarEvent.HOLIDAY_CHRISTMAS;
+            default ->
+                    null;
+        };
+    }
+
     public static TradingDaysSpec.AutoMethod toModel(AutomaticTradingDays value) {
         return switch (value) {
             case TD_AUTO_FTEST -> TradingDaysSpec.AutoMethod.FTEST;
@@ -50,11 +97,29 @@ public class EnumsMapping {
         };
     }
 
+    public static AutomaticTradingDays toDto(TradingDaysSpec.AutoMethod auto) {
+        return switch (auto) {
+            case FTEST -> AutomaticTradingDays.TD_AUTO_FTEST;
+            case WALD -> AutomaticTradingDays.TD_AUTO_WALD;
+            case BIC -> AutomaticTradingDays.TD_AUTO_BIC;
+            case AIC -> AutomaticTradingDays.TD_AUTO_AIC;
+            default -> AutomaticTradingDays.TD_AUTO_NO;
+        };
+    }
+
     public static RegressionTestType toModel(TradingDaysTest value) {
         return switch (value) {
             case TD_TEST_JOINT_F -> RegressionTestType.Joint_F;
             case TD_TEST_SEPARATE_T -> RegressionTestType.Separate_T;
             default -> RegressionTestType.None;
+        };
+    }
+
+    public static TradingDaysTest toDto(RegressionTestType test) {
+        return switch (test) {
+            case Joint_F -> TradingDaysTest.TD_TEST_JOINT_F;
+            case Separate_T -> TradingDaysTest.TD_TEST_SEPARATE_T;
+            default -> TradingDaysTest.TD_TEST_NO;
         };
     }
 
@@ -70,12 +135,44 @@ public class EnumsMapping {
         };
     }
 
+    public static TradingDays toDto(TradingDaysType td) {
+        return switch (td) {
+            case TD7 -> TradingDays.TD7;
+//            case TD6 -> TradingDays.TD6;
+//            case TD4c -> TradingDays.TD4C;
+            case TD4 -> TradingDays.TD4;
+            case TD3c -> TradingDays.TD3C;
+            case TD3 -> TradingDays.TD3;
+            case TD2c -> TradingDays.TD2C;
+//            case TD2d -> TradingDays.TD2D;
+            case TD2 -> TradingDays.TD2;
+            default -> TradingDays.TD_NONE;
+        };
+    }
+
     public static EasterSpec.Type toModel(EasterType value) {
         return switch (value) {
             case EASTER_STANDARD -> EasterSpec.Type.Standard;
             case EASTER_INCLUDEEASTER -> EasterSpec.Type.IncludeEaster;
             case EASTER_INCLUDEEASTERMONDAY -> EasterSpec.Type.IncludeEasterMonday;
             default -> EasterSpec.Type.Unused;
+        };
+    }
+
+    public static EasterType toDto(EasterSpec.Type type) {
+        return switch (type) {
+            case Standard -> EasterType.EASTER_STANDARD;
+            case IncludeEaster -> EasterType.EASTER_INCLUDEEASTER;
+            case IncludeEasterMonday -> EasterType.EASTER_INCLUDEEASTERMONDAY;
+            default -> EasterType.EASTER_UNUSED;
+        };
+    }
+
+    public static Transformation toDto(TransformationType fn) {
+        return switch (fn) {
+            case Log -> Transformation.FN_LOG;
+            case Auto -> Transformation.FN_AUTO;
+            default -> Transformation.FN_LEVEL;
         };
     }
 
@@ -92,6 +189,14 @@ public class EnumsMapping {
             case LP_LEAPYEAR -> LengthOfPeriodType.LeapYear;
             case LP_LENGTHOFPERIOD -> LengthOfPeriodType.LengthOfPeriod;
             default -> LengthOfPeriodType.None;
+        };
+    }
+
+    public static LengthOfPeriod toDto(LengthOfPeriodType lp) {
+        return switch (lp) {
+            case LeapYear -> LengthOfPeriod.LP_LEAPYEAR;
+            case LengthOfPeriod -> LengthOfPeriod.LP_LENGTHOFPERIOD;
+            default -> LengthOfPeriod.LP_NONE;
         };
     }
 
