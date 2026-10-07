@@ -2,6 +2,7 @@ package jdplus.main.ws.v1;
 
 import io.quarkus.grpc.GrpcClient;
 import io.quarkus.test.junit.QuarkusTest;
+import jdplus.main.ws.v1.mappers.*;
 import jdplus.toolkit.base.api.data.DoubleSeq;
 import jdplus.toolkit.base.api.timeseries.TsData;
 import jdplus.toolkit.base.api.timeseries.TsDataTable;
@@ -13,7 +14,6 @@ import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
-import static jdplus.main.ws.v1.Converters.*;
 import static jdplus.main.ws.v1.ValueStatus.*;
 import static java.lang.Double.NaN;
 import static jdplus.toolkit.base.api.timeseries.TsPeriod.*;
@@ -30,13 +30,13 @@ public class TsFunctionsServiceTest {
         var input = TsFunctionInputDto
                 .newBuilder()
                 .setId("Example 1")
-                .setSeries(fromTsData(TsData.of(yearly(2010), DoubleSeq.of(3, 4))))
+                .setSeries(TsDataMapping.toDto(TsData.of(yearly(2010), DoubleSeq.of(3, 4))))
                 .build();
 
         var output = TsFunctionOutputDto
                 .newBuilder()
                 .setId("Example 1")
-                .setSeries(fromTsData(TsData.of(yearly(2010), DoubleSeq.of(-1, 1))))
+                .setSeries(TsDataMapping.toDto(TsData.of(yearly(2010), DoubleSeq.of(-1, 1))))
                 .setStatus(Helpers.ok())
                 .build();
 
@@ -49,7 +49,7 @@ public class TsFunctionsServiceTest {
         var input = TsFunctionInputDto
                 .newBuilder()
                 .setId("Example 1")
-                .setSeries(fromTsData(TsData.of(yearly(2010), DoubleSeq.of(0, 1, 2, 3, 4, 5, 6, 7))))
+                .setSeries(TsDataMapping.toDto(TsData.of(yearly(2010), DoubleSeq.of(0, 1, 2, 3, 4, 5, 6, 7))))
                 .build();
 
         var output = DescriptiveStatisticsDto
@@ -74,15 +74,15 @@ public class TsFunctionsServiceTest {
         var input = BuildTsDataInputDto
                 .newBuilder()
                 .setId("Example 1")
-                .setGathering(fromObsGathering(ObsGathering.DEFAULT))
-                .addObservations(BuildTsDataObsDto.newBuilder().setDate(fromLocalDate(LocalDate.of(2010, 1, 1))).setValue(11).build())
-                .addObservations(BuildTsDataObsDto.newBuilder().setDate(fromLocalDate(LocalDate.of(2010, 2, 1))).setValue(22).build())
+                .setGathering(ObsGatheringMapping.toDto(ObsGathering.DEFAULT))
+                .addObservations(BuildTsDataObsDto.newBuilder().setDate(LocalDateMapping.toDto(LocalDate.of(2010, 1, 1))).setValue(11).build())
+                .addObservations(BuildTsDataObsDto.newBuilder().setDate(LocalDateMapping.toDto(LocalDate.of(2010, 2, 1))).setValue(22).build())
                 .build();
 
         var output = TsFunctionOutputDto
                 .newBuilder()
                 .setId("Example 1")
-                .setSeries(fromTsData(TsData.of(monthly(2010, 1), DoubleSeq.of(11, 22))))
+                .setSeries(TsDataMapping.toDto(TsData.of(monthly(2010, 1), DoubleSeq.of(11, 22))))
                 .setStatus(Helpers.ok())
                 .build();
 
@@ -95,14 +95,14 @@ public class TsFunctionsServiceTest {
         var input = BuildTsDataInputDto
                 .newBuilder()
                 .setId("abc")
-                .setGathering(fromObsGathering(ObsGathering.DEFAULT))
-                .addObservations(BuildTsDataObsDto.newBuilder().setDate(fromLocalDate(LocalDate.of(2010, 1, 1))).setValue(1).build())
+                .setGathering(ObsGatheringMapping.toDto(ObsGathering.DEFAULT))
+                .addObservations(BuildTsDataObsDto.newBuilder().setDate(LocalDateMapping.toDto(LocalDate.of(2010, 1, 1))).setValue(1).build())
                 .build();
 
         var output = TsFunctionOutputDto
                 .newBuilder()
                 .setId("abc")
-                .setSeries(fromTsData(TsData.empty("Cannot guess frequency with a single observation")))
+                .setSeries(TsDataMapping.toDto(TsData.empty("Cannot guess frequency with a single observation")))
                 .setStatus(Helpers.ko("Cannot guess frequency with a single observation"))
                 .build();
 
@@ -115,9 +115,9 @@ public class TsFunctionsServiceTest {
         var input = BuildTsDataTableInputDto
                 .newBuilder()
                 .setId("abc")
-                .setDistributionType(fromDistributionType(TsDataTable.DistributionType.FIRST))
-                .addCollection(fromTsData(TsData.of(quarterly(2010, 1), DoubleSeq.of(1.1))))
-                .addCollection(fromTsData(TsData.of(monthly(2010, 1), DoubleSeq.of(2.1, 2.2))))
+                .setDistributionType(EnumsMapping.toDto(TsDataTable.DistributionType.FIRST))
+                .addCollection(TsDataMapping.toDto(TsData.of(quarterly(2010, 1), DoubleSeq.of(1.1))))
+                .addCollection(TsDataMapping.toDto(TsData.of(monthly(2010, 1), DoubleSeq.of(2.1, 2.2))))
                 .build();
 
         var output = BuildTsDataTableOutputDto
@@ -125,7 +125,7 @@ public class TsFunctionsServiceTest {
                 .setId("abc")
                 .setMatrix(TsMatrixDto
                         .newBuilder()
-                        .setStart(fromTsPeriod(parse("2010/P1M")))
+                        .setStart(TsPeriodMapping.toDto(parse("2010/P1M")))
                         .setValues(MatrixDto
                                 .newBuilder()
                                 .setNrows(3)
@@ -145,9 +145,9 @@ public class TsFunctionsServiceTest {
         var input = BuildTsDataTableInputDto
                 .newBuilder()
                 .setId("abc")
-                .setDistributionType(fromDistributionType(TsDataTable.DistributionType.FIRST))
-                .addCollection(fromTsData(TsData.of(monthly(2010, 1), DoubleSeq.of(1.1))))
-                .addCollection(fromTsData(TsData.of(daily(2010, 1, 1), DoubleSeq.of(2.1, 2.2))))
+                .setDistributionType(EnumsMapping.toDto(TsDataTable.DistributionType.FIRST))
+                .addCollection(TsDataMapping.toDto(TsData.of(monthly(2010, 1), DoubleSeq.of(1.1))))
+                .addCollection(TsDataMapping.toDto(TsData.of(daily(2010, 1, 1), DoubleSeq.of(2.1, 2.2))))
                 .build();
 
         var output = BuildTsDataTableOutputDto
@@ -155,7 +155,7 @@ public class TsFunctionsServiceTest {
                 .setId("abc")
                 .setMatrix(TsMatrixDto
                         .newBuilder()
-                        .setStart(fromTsPeriod(parse("2010-01/P1D")))
+                        .setStart(TsPeriodMapping.toDto(parse("2010-01/P1D")))
                         .setValues(MatrixDto
                                 .newBuilder()
                                 .setNrows(31)
@@ -180,7 +180,7 @@ public class TsFunctionsServiceTest {
         var input = BuildTsDataTableInputDto
                 .newBuilder()
                 .setId("abc")
-                .setDistributionType(fromDistributionType(TsDataTable.DistributionType.FIRST))
+                .setDistributionType(EnumsMapping.toDto(TsDataTable.DistributionType.FIRST))
                 .build();
 
         var output = BuildTsDataTableOutputDto
@@ -188,7 +188,7 @@ public class TsFunctionsServiceTest {
                 .setId("abc")
                 .setMatrix(TsMatrixDto
                         .newBuilder()
-                        .setStart(fromTsPeriod(parse("1970/P1Y")))
+                        .setStart(TsPeriodMapping.toDto(parse("1970/P1Y")))
                         .setValues(MatrixDto
                                 .newBuilder()
                                 .setNrows(0)

@@ -1,5 +1,7 @@
 package jdplus.main.ws.v1;
 
+import jdplus.main.ws.v1.mappers.EnumsMapping;
+import jdplus.main.ws.v1.mappers.TsUnitMapping;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 
@@ -14,9 +16,9 @@ public class ConvertersTest {
     public void testTsUnit(Frequency freq) {
         if (freq == Frequency.UNRECOGNIZED) {
             assertThatRuntimeException()
-                    .isThrownBy(() -> Converters.toTsUnit(freq));
+                    .isThrownBy(() -> EnumsMapping.toModel(freq));
         } else {
-            assertThat(Converters.fromTsUnit(Converters.toTsUnit(freq)))
+            assertThat(TsUnitMapping.toDto(EnumsMapping.toModel(freq)))
                     .isEqualTo(freq);
         }
     }

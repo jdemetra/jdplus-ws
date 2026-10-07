@@ -391,7 +391,7 @@ message VersionInfoDto {
   int32 revision = 3;
 }
 
-message TramoForecastRequestDto {
+message TramoRequestDto {
   TsDataDto series = 1;
   oneof spec {
      string defSpec = 2;
@@ -769,4 +769,112 @@ message FixedWeekDayDto {
   int32 weekday = 3;
   double weight = 4;
   ValidityPeriodDto validity = 5;
+}
+
+message TramoOutputDto {
+  RegArimaModelDto result = 1;
+  TramoSpecDto estimation_spec = 2;
+  TramoSpecDto result_spec = 3;
+  ProcessingLogsDto log = 4;
+  map<string, ProcessingDetailDto> details = 5;
+}
+
+message DoublesDto {
+  string name = 1;
+  repeated double values = 2;
+}
+
+message ProcessingDetailDto {
+  oneof data{
+    TsDataDto ts = 1;
+    DoublesDto array = 2;
+    MatrixDto matrix = 3;
+    StatisticalTestDto test = 4;
+    string message = 5;
+    int32 ivalue = 6;
+    double dvalue = 7;
+  }
+}
+
+enum InformationType {
+  Info = 0;
+  Warning = 1;
+  Error = 2;
+}
+
+message ProcessingInformationDto {
+  string name = 1;
+  string origin = 2;
+  string msg = 3;
+  InformationType type = 4;
+  repeated ProcessingDetailDto details = 5;
+}
+
+message ProcessingLogsDto {
+  repeated ProcessingInformationDto log = 1;
+}
+
+message RegArimaModelDto {
+  message DescriptionDto {
+    TsDataDto series = 1;
+    bool log = 2;
+    LengthOfPeriod preadjustment = 3;
+    repeated RegressionVariableDto variables = 4;
+    SarimaSpecDto arima = 5;
+  }
+
+  message EstimationDto {
+    /* Model  y = Xb + u */
+    repeated double y = 1;
+    MatrixDto x = 2;
+    repeated double b = 3;
+    MatrixDto bcovariance = 4;
+    ParametersEstimationDto parameters = 5;
+    DiffuseLikelihoodStatisticsDto likelihood = 6;
+    repeated double residuals = 7;
+    repeated MissingEstimationDto missings = 8;
+  }
+
+  message MissingEstimationDto {
+    int32 position = 1;
+    double value = 10;
+    double stde = 11;
+  }
+
+  DescriptionDto description = 1;
+  EstimationDto estimation = 2;
+  DiagnosticsDto diagnostics = 5;
+}
+
+message RegressionVariableDto {
+  string name = 1;
+  VariableType var_type = 2;
+  map<string, string> metadata = 3;
+  repeated ParameterDto coefficients = 4;
+}
+
+message ParametersEstimationDto {
+  repeated double value = 1;
+  repeated double score = 2;
+  MatrixDto covariance = 3;
+  string description = 4;
+}
+
+message DiagnosticsDto {
+  map<string, StatisticalTestDto> residuals_tests = 1;
+}
+
+enum VariableType{
+  VAR_UNSPECIFIED = 0;
+  VAR_MEAN = 1;
+  VAR_TD = 10;
+  VAR_LP = 11;
+  VAR_EASTER = 12;
+  VAR_AO = 20;
+  VAR_LS = 21;
+  VAR_TC = 22;
+  VAR_SO = 23;
+  VAR_OUTLIER = 29;
+  VAR_IV = 30;
+  VAR_RAMP = 40;
 }
