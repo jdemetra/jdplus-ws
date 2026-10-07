@@ -3,6 +3,7 @@ package jdplus.main.ws.v1.mappers;
 import jdplus.main.ws.v1.*;
 import jdplus.toolkit.base.api.data.ParameterType;
 import jdplus.toolkit.base.api.modelling.TransformationType;
+import jdplus.toolkit.base.api.processing.ProcessingLog;
 import jdplus.toolkit.base.api.timeseries.TimeSelector;
 import jdplus.toolkit.base.api.timeseries.TsDataTable;
 import jdplus.toolkit.base.api.timeseries.TsUnit;
@@ -40,50 +41,29 @@ public class EnumsMapping {
         };
     }
 
-    public static CalendarEvent toDto(DayEvent hol){
+    public static CalendarEvent toDto(DayEvent hol) {
         return switch (hol) {
-            case NewYear ->
-                    CalendarEvent.HOLIDAY_NEWYEAR;
-            case ShroveMonday ->
-                    CalendarEvent.HOLIDAY_SHROVEMONDAY;
-            case ShroveTuesday ->
-                    CalendarEvent.HOLIDAY_SHROVETUESDAY;
-            case AshWednesday ->
-                    CalendarEvent.HOLIDAY_ASHWEDNESDAY;
-            case Easter ->
-                    CalendarEvent.HOLIDAY_EASTER;
-            case MaundyThursday ->
-                    CalendarEvent.HOLIDAY_MAUNDYTHURSDAY;
-            case GoodFriday ->
-                    CalendarEvent.HOLIDAY_GOODFRIDAY;
-            case EasterMonday ->
-                    CalendarEvent.HOLIDAY_EASTERMONDAY;
-            case Ascension ->
-                    CalendarEvent.HOLIDAY_ASCENSION;
-            case Pentecost ->
-                    CalendarEvent.HOLIDAY_PENTECOST;
-            case CorpusChristi ->
-                    CalendarEvent.HOLIDAY_CORPUSCHRISTI;
-            case WhitMonday ->
-                    CalendarEvent.HOLIDAY_WHITMONDAY;
-            case MayDay ->
-                    CalendarEvent.HOLIDAY_MAYDAY;
-            case Assumption ->
-                    CalendarEvent.HOLIDAY_ASSUMPTION;
-            case LaborDay ->
-                    CalendarEvent.HOLIDAY_LABORDAY;
-            case Halloween ->
-                    CalendarEvent.HOLIDAY_HALLOWEEN;
-            case AllSaintsDay ->
-                    CalendarEvent.HOLIDAY_ALLSAINTSDAY;
-            case Armistice ->
-                    CalendarEvent.HOLIDAY_ARMISTICE;
-            case ThanksGiving ->
-                    CalendarEvent.HOLIDAY_THANKSGIVING;
-            case Christmas ->
-                    CalendarEvent.HOLIDAY_CHRISTMAS;
-            default ->
-                    null;
+            case NewYear -> CalendarEvent.HOLIDAY_NEWYEAR;
+            case ShroveMonday -> CalendarEvent.HOLIDAY_SHROVEMONDAY;
+            case ShroveTuesday -> CalendarEvent.HOLIDAY_SHROVETUESDAY;
+            case AshWednesday -> CalendarEvent.HOLIDAY_ASHWEDNESDAY;
+            case Easter -> CalendarEvent.HOLIDAY_EASTER;
+            case MaundyThursday -> CalendarEvent.HOLIDAY_MAUNDYTHURSDAY;
+            case GoodFriday -> CalendarEvent.HOLIDAY_GOODFRIDAY;
+            case EasterMonday -> CalendarEvent.HOLIDAY_EASTERMONDAY;
+            case Ascension -> CalendarEvent.HOLIDAY_ASCENSION;
+            case Pentecost -> CalendarEvent.HOLIDAY_PENTECOST;
+            case CorpusChristi -> CalendarEvent.HOLIDAY_CORPUSCHRISTI;
+            case WhitMonday -> CalendarEvent.HOLIDAY_WHITMONDAY;
+            case MayDay -> CalendarEvent.HOLIDAY_MAYDAY;
+            case Assumption -> CalendarEvent.HOLIDAY_ASSUMPTION;
+            case LaborDay -> CalendarEvent.HOLIDAY_LABORDAY;
+            case Halloween -> CalendarEvent.HOLIDAY_HALLOWEEN;
+            case AllSaintsDay -> CalendarEvent.HOLIDAY_ALLSAINTSDAY;
+            case Armistice -> CalendarEvent.HOLIDAY_ARMISTICE;
+            case ThanksGiving -> CalendarEvent.HOLIDAY_THANKSGIVING;
+            case Christmas -> CalendarEvent.HOLIDAY_CHRISTMAS;
+            default -> null;
         };
     }
 
@@ -315,6 +295,24 @@ public class EnumsMapping {
             case FREQ_MONTHLY -> TsUnit.P1M;
             case FREQ_UNDEFINED -> TsUnit.UNDEFINED;
             case FREQ_DAILY -> TsUnit.P1D;
+            default -> throw new RuntimeException("Unreachable");
+        };
+    }
+
+    public static ProcessingLog.InformationType toModel(jdplus.main.ws.v1.InformationType dto) {
+        return switch (dto) {
+            case INFORMATION_TYPE_INFO -> ProcessingLog.InformationType.Info;
+            case INFORMATION_TYPE_WARNING -> ProcessingLog.InformationType.Warning;
+            case INFORMATION_TYPE_ERROR -> ProcessingLog.InformationType.Error;
+            default -> throw new IllegalArgumentException(dto.name());
+        };
+    }
+
+    public static jdplus.main.ws.v1.InformationType toDto(ProcessingLog.InformationType model) {
+        return switch (model) {
+            case Info -> InformationType.INFORMATION_TYPE_INFO;
+            case Warning -> InformationType.INFORMATION_TYPE_WARNING;
+            case Error -> InformationType.INFORMATION_TYPE_ERROR;
             default -> throw new RuntimeException("Unreachable");
         };
     }

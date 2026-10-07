@@ -13,7 +13,7 @@ public class TemporalDisaggregationMapping {
                 .setHyperParametersCount(value.getHyperParametersCount())
                 .setLikelihood(DiffuseConcentratedLikelihoodMapping.toDto(value.getLikelihood()))
                 .setStats(DiffuseLikelihoodStatisticsMapping.toDto(value.getStats()))
-                .setResidualsDiagnostics(ResidualsDiagnosticsMapping.toDto(value.getResidualsDiagnostics()))
+                //.setResidualsDiagnostics(ResidualsDiagnosticsMapping.toDto(value.getResidualsDiagnostics()))
                 .setDisaggregatedSeries(TsDataMapping.toDto(value.getDisaggregatedSeries()))
                 .setStDevDisaggregatedSeries(TsDataMapping.toDto(value.getStdevDisaggregatedSeries()));
 
