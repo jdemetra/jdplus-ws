@@ -4,6 +4,7 @@ import jdplus.main.ws.v1.*;
 import jdplus.toolkit.base.api.timeseries.ValidityPeriod;
 import jdplus.toolkit.base.api.timeseries.calendars.*;
 import jdplus.toolkit.base.api.util.WeightedItem;
+import lombok.NonNull;
 
 import java.time.DayOfWeek;
 import java.util.ArrayList;
@@ -63,12 +64,38 @@ public class CalendarsMapping {
         return new FixedDay(dto.getMonth(), dto.getDay(), dto.getWeight(), toModel(dto.getValidity()));
     }
 
+    private static FixedDayDto toDto(@NonNull FixedDay fd) {
+        return FixedDayDto.newBuilder()
+                .setMonth(fd.getMonth())
+                .setDay(fd.getDay())
+                .setWeight(fd.getWeight())
+                .setValidity(toDto(fd.getValidityPeriod()))
+                .build();
+    }
+
     private static SingleDate toModel(SingleDateDto dto) {
         return new SingleDate(LocalDateMapping.toModel(dto.getDate()), dto.getWeight());
     }
 
+    private static SingleDateDto toDto(@NonNull SingleDate sd) {
+        return SingleDateDto.newBuilder()
+                .setDate(LocalDateMapping.toDto(sd.getDate()))
+                .setWeight(sd.getWeight())
+                .build();
+    }
+
     private static FixedWeekDay toModel(FixedWeekDayDto dto) {
         return new FixedWeekDay(dto.getMonth(), dto.getPosition(), DayOfWeek.of(dto.getWeekday()), dto.getWeight(), toModel(dto.getValidity()));
+    }
+
+    private static FixedWeekDayDto toDto(@NonNull FixedWeekDay fd) {
+        return FixedWeekDayDto.newBuilder()
+                .setMonth(fd.getMonth())
+                .setWeekday(fd.getDayOfWeek().getValue())
+                .setPosition(fd.getPlace())
+                .setWeight(fd.getWeight())
+                .setValidity(toDto(fd.getValidityPeriod()))
+                .build();
     }
 
     private static EasterRelatedDay toModel(EasterRelatedDayDto dto) {
@@ -79,10 +106,19 @@ public class CalendarsMapping {
         }
     }
 
+    private static EasterRelatedDayDto toDto(@NonNull EasterRelatedDay ed) {
+        return EasterRelatedDayDto.newBuilder()
+                .setOffset(ed.getOffset())
+                .setJulian(ed.isJulian())
+                .setWeight(ed.getWeight())
+                .setValidity(toDto(ed.getValidityPeriod()))
+                .build();
+    }
+
     private static PrespecifiedHoliday toModel(PrespecifiedHolidayDto dto) {
         DayEvent ce;
         boolean julian = false;
-        if (dto.getEvent() == CalendarEvent.HOLIDAY_JULIANEASTER){
+        if (dto.getEvent() == CalendarEvent.HOLIDAY_JULIANEASTER) {
             ce = DayEvent.Easter;
             julian = true;
         } else {
@@ -97,7 +133,33 @@ public class CalendarsMapping {
                 .build();
     }
 
+    public static PrespecifiedHolidayDto toDto(@NonNull PrespecifiedHoliday ph) {
+        CalendarEvent ce;
+        if (ph.isJulian()) {
+            if (ph.getEvent() == DayEvent.Easter) {
+                ce = CalendarEvent.HOLIDAY_JULIANEASTER;
+            } else {
+                throw new UnsupportedOperationException();
+            }
+        } else {
+            ce = EnumsMapping.toDto(ph.getEvent());
+        }
+
+        return PrespecifiedHolidayDto.newBuilder()
+                .setWeight(ph.getWeight())
+                .setValidity(toDto(ph.getValidityPeriod()))
+                .setEvent(ce)
+                .build();
+    }
+
     private static ValidityPeriod toModel(ValidityPeriodDto dto) {
         return ValidityPeriod.between(LocalDateMapping.toModel(dto.getStart()), LocalDateMapping.toModel(dto.getEnd()));
+    }
+
+    private static ValidityPeriodDto toDto(ValidityPeriod vp) {
+        return ValidityPeriodDto.newBuilder()
+                .setStart(LocalDateMapping.toDto(vp.getStart()))
+                .setEnd(LocalDateMapping.toDto(vp.getEnd()))
+                .build();
     }
 }
