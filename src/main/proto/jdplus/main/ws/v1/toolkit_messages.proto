@@ -797,9 +797,9 @@ message ProcessingDetailDto {
 }
 
 enum InformationType {
-  Info = 0;
-  Warning = 1;
-  Error = 2;
+  INFORMATION_TYPE_INFO = 0;
+  INFORMATION_TYPE_WARNING = 1;
+  INFORMATION_TYPE_ERROR = 2;
 }
 
 message ProcessingInformationDto {
@@ -807,7 +807,7 @@ message ProcessingInformationDto {
   string origin = 2;
   string msg = 3;
   InformationType type = 4;
-  repeated ProcessingDetailDto details = 5;
+  ProcessingDetailDto details = 5;
 }
 
 message ProcessingLogsDto {

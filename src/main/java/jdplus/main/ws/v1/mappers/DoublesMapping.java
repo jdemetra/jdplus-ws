@@ -5,10 +5,11 @@ import jdplus.toolkit.base.api.data.DoubleSeq;
 import java.util.List;
 
 public class DoublesMapping {
-    static List<Double> toDto(DoubleSeq value) {
+    public static List<Double> toDto(DoubleSeq value) {
         return value.stream().boxed().toList();
     }
-    static DoubleSeq toModel(List<Double> value) {
+
+    public static DoubleSeq toModel(List<Double> value) {
         return DoubleSeq.onMapping(value.size(), value::get);
     }
 }
