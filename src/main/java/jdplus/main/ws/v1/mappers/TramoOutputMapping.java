@@ -8,7 +8,12 @@ public class TramoOutputMapping {
         TramoOutputDto.Builder builder = TramoOutputDto.newBuilder()
                 .setEstimationSpec(SpecsMapping.toDto(model.getEstimationSpec()));
 
+        if (model.getResult() != null) {
+            builder.setResult(RegSarimaModelMapping.toDto(model.getResult()))
+                    .setResultSpec(SpecsMapping.toDto(model.getResultSpec()));
+        }
+        // TODO detail and logs
 
-        return null;
+        return builder.build();
     }
 }
