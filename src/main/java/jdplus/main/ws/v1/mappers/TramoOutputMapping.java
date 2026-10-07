@@ -54,6 +54,7 @@ public class TramoOutputMapping {
                 case StatisticalTest test -> builder.setTest(StatisticalTestMapping.toDto(test));
                 case Double d -> builder.setDvalue(d);
                 case Integer integer -> builder.setIvalue(integer);
+                case String message -> builder.setMessage(message);
                 default -> {
                 }
             }
