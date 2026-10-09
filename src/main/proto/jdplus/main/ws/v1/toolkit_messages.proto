@@ -110,8 +110,8 @@ message TimeSelectorDto {
   SelectionType type = 1;
   int32 n0 = 2;
   int32 n1 = 3;
-  DateDto d0 = 4;
-  DateDto d1 = 5;
+  optional DateDto d0 = 4;
+  optional DateDto d1 = 5;
 }
 
 enum ResultStatusType {
@@ -299,6 +299,22 @@ message ParameterDto {
   double value = 1;
   ParameterType type = 2;
   string description = 3;
+}
+
+message LikelihoodStatisticsDto{
+  int32 nobs = 1;
+  int32 neffectiveobs = 2;
+  int32 nparams = 3;
+  int32 degrees_of_freedom = 4;
+  double log_likelihood = 5;
+  double adjusted_log_likelihood = 6;
+  double aic = 7;
+  double aicc = 8;
+  double bic = 9;
+  double bicc = 10;
+  double bic2 = 11;
+  double hannan_quinn = 12;
+  double ssq = 13;
 }
 
 message DiffuseLikelihoodStatisticsDto {
@@ -550,7 +566,7 @@ message EasterSpecDto{
   int32 duration = 2;
   bool julian = 3;
   bool test = 4;
-  ParameterDto coefficient = 10;
+  optional ParameterDto coefficient = 10;
 }
 
 message TradingDaysSpecDto{
@@ -564,11 +580,11 @@ message TradingDaysSpecDto{
   double ptest = 8;
   bool auto_adjust = 9;
   repeated ParameterDto tdcoefficients = 10;
-  ParameterDto lpcoefficient = 11;
+  optional ParameterDto lpcoefficient = 11;
 }
 
 message RegressionSpecDto{
-  ParameterDto mean = 1;
+  optional ParameterDto mean = 1;
   bool check_mean = 2;
   TradingDaysSpecDto td = 3;
   EasterSpecDto easter = 4;
@@ -774,8 +790,8 @@ message FixedWeekDayDto {
 message TramoOutputDto {
   RegArimaModelDto result = 1;
   TramoSpecDto estimation_spec = 2;
-  TramoSpecDto result_spec = 3;
-  ProcessingLogsDto log = 4;
+  optional TramoSpecDto result_spec = 3;
+  optional ProcessingLogsDto log = 4;
   map<string, ProcessingDetailDto> details = 5;
 }
 
@@ -830,7 +846,7 @@ message RegArimaModelDto {
     repeated double b = 3;
     MatrixDto bcovariance = 4;
     ParametersEstimationDto parameters = 5;
-    DiffuseLikelihoodStatisticsDto likelihood = 6;
+    LikelihoodStatisticsDto likelihood = 6;
     repeated double residuals = 7;
     repeated MissingEstimationDto missings = 8;
   }
@@ -857,7 +873,7 @@ message ParametersEstimationDto {
   repeated double value = 1;
   repeated double score = 2;
   MatrixDto covariance = 3;
-  string description = 4;
+  optional string description = 4;
 }
 
 message DiagnosticsDto {

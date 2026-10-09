@@ -11,6 +11,8 @@ import jdplus.tramoseats.base.core.tramo.TramoOutput;
 
 public class TramoOutputMapping {
     public static TramoOutputDto toDto(TramoOutput model) {
+        System.out.print(model);
+
         TramoOutputDto.Builder builder = TramoOutputDto.newBuilder()
                 .setEstimationSpec(SpecsMapping.toDto(model.getEstimationSpec()));
 
