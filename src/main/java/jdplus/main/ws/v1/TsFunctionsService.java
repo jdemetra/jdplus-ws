@@ -27,8 +27,8 @@ public class TsFunctionsService implements TsFunctions {
         // TODO: improve version management
         return Uni.createFrom().item(VersionInfoDto.newBuilder()
                 .setMajor(0)
-                .setMinor(0)
-                .setRevision(1)
+                .setMinor(2)
+                .setRevision(0)
                 .build());
     }
 
@@ -231,8 +231,13 @@ public class TsFunctionsService implements TsFunctions {
     }
 
     @Override
-    public Uni<MatrixDto> tramoForecast(TramoRequestDto request) {
+    public Uni<TsMatrixDto> tramoForecast(TramoRequestDto request) {
         return Uni.createFrom().item(Helpers.tramoForecast(request));
+    }
+
+    @Override
+    public Multi<TsMatrixDto> tramoForecastStream(Multi<TramoRequestDto> request) {
+        return request.onItem().transform(Helpers::tramoForecast);
     }
 
     @Override

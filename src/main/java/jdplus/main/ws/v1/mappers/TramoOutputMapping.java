@@ -10,11 +10,17 @@ import jdplus.toolkit.base.api.timeseries.TsData;
 import jdplus.tramoseats.base.core.tramo.TramoOutput;
 
 public class TramoOutputMapping {
+
     public static TramoOutputDto toDto(TramoOutput model) {
+        return toDto(model, "");
+    }
+
+    public static TramoOutputDto toDto(TramoOutput model, String id) {
         System.out.print(model);
 
         TramoOutputDto.Builder builder = TramoOutputDto.newBuilder()
-                .setEstimationSpec(SpecsMapping.toDto(model.getEstimationSpec()));
+                .setEstimationSpec(SpecsMapping.toDto(model.getEstimationSpec()))
+                .setId(id);
 
         if (model.getResult() != null) {
             builder.setResult(RegSarimaModelMapping.toDto(model.getResult()))

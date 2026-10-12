@@ -60,11 +60,15 @@ message MatrixDto {
   int32 ncols = 2;
   // The number of values should be nrows*ncols. Values are organized by columns (1st columnn, 2nd column...)
   repeated double values = 3;
+
+  string id = 10;
 }
 
 message TsMatrixDto {
   TsPeriodDto start = 1;
   MatrixDto values = 2;
+
+  string id = 10;
 }
 
 message TsMonikerDto {
@@ -415,7 +419,10 @@ message TramoRequestDto {
   }
   int32 n_forecasts = 3;
   optional ModellingContextDto modellingContext = 4;
+
+  string id = 10;
 }
+
 
 enum Transformation {
   FN_LEVEL = 0;
@@ -793,6 +800,8 @@ message TramoOutputDto {
   optional TramoSpecDto result_spec = 3;
   optional ProcessingLogsDto log = 4;
   map<string, ProcessingDetailDto> details = 5;
+
+  string id = 10;
 }
 
 message DoublesDto {

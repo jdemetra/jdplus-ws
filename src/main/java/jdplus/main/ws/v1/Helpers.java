@@ -257,7 +257,7 @@ class Helpers {
     }
 
 
-    public static MatrixDto tramoForecast(TramoRequestDto request) {
+    public static TsMatrixDto tramoForecast(TramoRequestDto request) {
         TsData series = TsDataMapping.toModel(request.getSeries());
         int nForecasts = request.getNForecasts();
         TramoSpec spec = getSpecFromRequest(request);
@@ -279,7 +279,13 @@ class Helpers {
         R.column(1).copy(f.getForecastsStdev());
         R.column(2).copy(f.getRawForecasts());
         R.column(3).copy(f.getRawForecastsStdev());
-        return MatrixMapping.toDto(R);
+
+        return TsMatrixDto.newBuilder()
+                .setStart(TsPeriodMapping.toDto(series.getEnd()) )
+                .setValues(MatrixMapping.toDto(R))
+                .setId(request.getId())
+                .build();
+
     }
 
     public static TramoOutputDto tramoFullProcess(TramoRequestDto request) {
@@ -299,6 +305,6 @@ class Helpers {
                 .resultSpec(estimation == null ? null : TramoFactory.getInstance().generateSpec(spec, estimation.getDescription()))
                 .build();
 
-        return TramoOutputMapping.toDto(tramoOutput);
+        return TramoOutputMapping.toDto(tramoOutput, request.getId());
     }
 }

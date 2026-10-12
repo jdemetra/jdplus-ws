@@ -37,6 +37,11 @@ service TsFunctions {
 
   rpc ProcessTemporalDisaggregation(TemporalDisaggregationRequestDto) returns (TemporalDisaggregationResultsDto);
 
-  rpc TramoForecast(TramoRequestDto) returns (MatrixDto);
+  rpc TramoForecast(TramoRequestDto) returns (TsMatrixDto);
+  rpc TramoForecastStream(stream TramoRequestDto) returns (stream TsMatrixDto);
+
   rpc TramoFullProcess(TramoRequestDto) returns (TramoOutputDto);
+
+
+
 }

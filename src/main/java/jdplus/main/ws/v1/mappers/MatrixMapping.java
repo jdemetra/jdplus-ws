@@ -6,15 +6,20 @@ import jdplus.toolkit.base.api.math.matrices.Matrix;
 
 public class MatrixMapping {
     public static MatrixDto toDto(Matrix m) {
-       if (m == null || m.isEmpty()){
-           return MatrixDto.getDefaultInstance();
-       }
+        return toDto(m, "");
+    }
+
+    public static MatrixDto toDto(Matrix m, String id) {
+        if (m == null || m.isEmpty()) {
+            return MatrixDto.getDefaultInstance();
+        }
 
         return MatrixDto
                 .newBuilder()
                 .setNrows(m.getRowsCount())
                 .setNcols(m.getColumnsCount())
                 .addAllValues(Iterables.of(m.toArray()))
+                .setId(id)
                 .build();
     }
 }
