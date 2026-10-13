@@ -1,0 +1,905 @@
+syntax = "proto3";
+
+package jdplus.main.ws.v1;
+
+option java_package = "jdplus.main.ws.v1";
+option java_multiple_files = true;
+
+option csharp_namespace = "JDPlus.Main.WS.V1";
+
+message EmptyDto {}
+
+/* Frequency of an event. Only regular frequencies higher or equal to yearly frequency are considered. */
+enum Frequency {
+  /* Undefined frequency. To be used when the frequency of an event is unknown. */
+  FREQ_UNDEFINED = 0;
+  /* One event by year */
+  FREQ_YEARLY = 1;
+  /* One event every half-year */
+  FREQ_HALF_YEARLY = 2;
+  /* One event every four months */
+  FREQ_QUADRI_MONTHLY = 3;
+  /* One event every quarter */
+  FREQ_QUARTERLY = 4;
+  /* One event every two months */
+  FREQ_BI_MONTHLY = 6;
+  /* One event every month */
+  FREQ_MONTHLY = 12;
+  /* One event every day */
+  FREQ_DAILY = 365;
+}
+
+message DateDto {
+  // Year of the date. Must be from 1 to 9999
+  int32 year = 1;
+
+  // Month of a year. Must be from 1 to 12, or 0 to specify a year without a
+  // month and day.
+  int32 month = 2;
+
+  // Day of a month. Must be from 1 to 31 and valid for the year and month, or 0
+  // to specify a year by itself or a year and month where the day isn't
+  // significant.
+  int32 day = 3;
+}
+
+message TsPeriodDto {
+  Frequency frequency = 1;
+  int32 year = 2;
+  // position in the year (from 0 to annual_frequency excluded)
+  int32 pos = 3;
+}
+
+message TsDataDto {
+  TsPeriodDto start = 1;
+  repeated double values = 2;
+}
+
+message MatrixDto {
+  int32 nrows = 1;
+  int32 ncols = 2;
+  // The number of values should be nrows*ncols. Values are organized by columns (1st columnn, 2nd column...)
+  repeated double values = 3;
+
+  string id = 10;
+}
+
+message TsMatrixDto {
+  TsPeriodDto start = 1;
+  MatrixDto values = 2;
+
+  string id = 10;
+}
+
+message TsMonikerDto {
+  string source = 1;
+  string id = 2;
+}
+
+message TsDto {
+  string name = 1;
+  TsMonikerDto moniker = 2;
+  TsDataDto data = 3;
+  map<string, string> metadata = 4;
+}
+
+// Observation defined on a calendar period
+message TsObservationDto {
+  // For point observations, start should be equal to end
+  // Otherwise, start is included in and end is excluded from the period corresponding to the observation
+  DateDto start = 1;
+  DateDto end = 2;
+  double value = 3;
+}
+
+message TimeSeriesDto {
+  string name = 1;
+  TsMonikerDto moniker = 2;
+  repeated TsObservationDto observations = 3;
+  map<string, string> metadata = 4;
+}
+
+enum SelectionType {
+  SPAN_ALL = 0;
+  SPAN_FROM = 1;
+  SPAN_TO = 2;
+  SPAN_BETWEEN = 3;
+  SPAN_LAST = 4;
+  SPAN_FIRST = 5;
+  SPAN_EXCLUDING = 6;
+  SPAN_NONE = 7;
+}
+
+message TimeSelectorDto {
+  SelectionType type = 1;
+  int32 n0 = 2;
+  int32 n1 = 3;
+  optional DateDto d0 = 4;
+  optional DateDto d1 = 5;
+}
+
+enum ResultStatusType {
+  STATUS_OK = 0;
+  STATUS_ERROR = 1;
+  STATUS_WARNING = 2;
+}
+
+message ResultStatusDto {
+  ResultStatusType type = 1;
+  string message = 2;
+}
+
+/* Default input of TsFunctions (no additional parameter) */
+message TsFunctionInputDto {
+  string id = 1;
+  TsDataDto series = 2;
+}
+
+/* Default output of TsFunctions (no additional output) */
+message TsFunctionOutputDto {
+  string id = 1;
+  ResultStatusDto status = 2;
+  TsDataDto series = 3;
+}
+
+/* Computes the percentage of variation (=[y(t)/y(t-lag)-1]*100) */
+message PctInputDto {
+  string id = 1;
+  TsDataDto series = 2;
+  int32 lag = 3;
+}
+
+/* Apply <power> times the difference operator (y[t]-y[t-lag]) */
+message DeltaInputDto {
+  string id = 1;
+  TsDataDto series = 2;
+  int32 lag = 3;
+  int32 power = 4;
+}
+
+
+enum AggregationType {
+  AGGREGATION_NONE = 0;
+  AGGREGATION_SUM = 1;
+  AGGREGATION_AVERAGE = 2;
+  AGGREGATION_FIRST = 3;
+  AGGREGATION_LAST = 4;
+  AGGREGATION_MAX = 5;
+  AGGREGATION_MIN = 6;
+}
+
+message AggregationInputDto {
+  string id = 1;
+  TsDataDto series = 2;
+  AggregationType aggregation_type = 3;
+  Frequency new_frequency = 4;
+  // only complete periods (all the months in the year...) are computed
+  bool complete = 5;
+}
+
+message HodrickPrescottInputDto {
+  string id = 1;
+  TsDataDto series = 2;
+  int32 lambda = 3;
+}
+
+message HodrickPrescottOutputDto {
+  string id = 1;
+  ResultStatusDto status = 2;
+  TsDataDto trend = 3;
+  TsDataDto noise = 4;
+}
+
+message DescriptiveStatisticsDto {
+
+  string id = 1;
+  ResultStatusDto status = 2;
+  int32 n = 3;
+  int32 nmissing = 4;
+  double max = 5;
+  double min = 6;
+  double average = 7;
+  double stdev = 8;
+  double q25 = 10;
+  double q50 = 11;
+  double q75 = 12;
+}
+
+/* Parameters used when collecting observations in order to create time series. */
+message ObsGatheringDto {
+  Frequency frequency = 1;
+  AggregationType aggregation_type = 2;
+  bool allow_partial_aggregation = 3;
+  bool include_missing_values = 4;
+}
+
+message BuildTsDataObsDto {
+  DateDto date = 1;
+  double value = 2;
+}
+
+message BuildTsDataInputDto {
+  string id = 1;
+  ObsGatheringDto gathering = 2;
+  repeated BuildTsDataObsDto observations = 3;
+}
+
+enum DistributionType {
+  DIST_FIRST = 0;
+  DIST_LAST = 1;
+  DIST_MIDDLE = 2;
+}
+
+message BuildTsDataTableInputDto {
+  string id = 1;
+  DistributionType distribution_type = 2;
+  repeated TsDataDto collection = 3;
+}
+
+enum ValueStatus {
+  VS_PRESENT = 0;
+  VS_UNUSED = 1;
+  VS_BEFORE = 2;
+  VS_AFTER = 3;
+  VS_EMPTY = 4;
+}
+
+message BuildTsDataTableOutputDto {
+  string id = 1;
+  TsMatrixDto matrix = 2;
+  repeated ValueStatus statuses = 3;
+}
+
+message TemporalDisaggregationResultsDto {
+  TsDataDto originalSeries = 1;
+  TsDomainDto disaggregationDomain = 2;
+  // Regression variables
+  repeated TsVariableDto indicators = 3;
+  // Regression estimation. The order correspond to the order of the variables.
+  int32 hyperParametersCount = 4;
+  DiffuseConcentratedLikelihoodDto likelihood = 5;
+  DiffuseLikelihoodStatisticsDto stats = 6;
+  optional ObjectiveFunctionPointDto maximum = 7;
+  ResidualsDiagnosticsDto residualsDiagnostics = 8;
+  TsDataDto disaggregatedSeries = 9;
+  TsDataDto stDevDisaggregatedSeries = 10;
+  optional TsDataDto regressionEffects = 11;
+}
+
+message DiffuseConcentratedLikelihoodDto {
+  double ll = 1;
+  double ssqerr = 2;
+  double ldet = 3;
+  double lddet = 4;
+  int32 nobs = 5;
+  int32 nd = 6;
+  int32 nxd = 7;
+  repeated double res = 8;
+  repeated double b = 9;
+  MatrixDto bvar = 10;
+  bool legacy = 11;
+  bool scalingFactor = 12 ;
+}
+
+message TsVariableDto {
+  string name = 1;
+  string id = 2;
+  int32 lag = 3;
+  ParameterDto coefficient = 4;
+  map<string, string> metadata = 5;
+}
+
+enum ParameterType{
+  // Similar to null
+  PARAMETER_UNUSED = 0;
+  // Parameter is used but not defined (to be estimated)
+  PARAMETER_UNDEFINED = 1;
+  PARAMETER_FIXED = 2;
+  PARAMETER_INITIAL = 3;
+  PARAMETER_ESTIMATED = 4;
+}
+
+message ParameterDto {
+  double value = 1;
+  ParameterType type = 2;
+  string description = 3;
+}
+
+message LikelihoodStatisticsDto{
+  int32 nobs = 1;
+  int32 neffectiveobs = 2;
+  int32 nparams = 3;
+  int32 degrees_of_freedom = 4;
+  double log_likelihood = 5;
+  double adjusted_log_likelihood = 6;
+  double aic = 7;
+  double aicc = 8;
+  double bic = 9;
+  double bicc = 10;
+  double bic2 = 11;
+  double hannan_quinn = 12;
+  double ssq = 13;
+}
+
+message DiffuseLikelihoodStatisticsDto {
+  int32 nobs = 1;
+  int32 ndiffuse = 2;
+  int32 nparams = 3;
+  int32 degrees_of_freedom = 4;
+  double log_likelihood = 5;
+  double adjusted_log_likelihood = 6;
+  double aic = 7;
+  double aicc = 8;
+  double bic = 9;
+  double ssq = 13;
+  // double ssqerr = 14;
+  double ldet = 15;
+  double dcorrection = 16;
+
+  reserved "ssqerr";
+  reserved 14;
+}
+
+message TsDomainDto {
+  TsPeriodDto startPeriod = 1;
+  int32 length = 2;
+}
+
+message ObjectiveFunctionPointDto {
+  double value = 1;
+  repeated double parameters = 2;
+  repeated double gradient = 3;
+  MatrixDto hessian = 4;
+}
+
+message ResidualsDiagnosticsDto {
+  TsDataDto fullResiduals = 1;
+  NiidTestsDto niid = 2;
+}
+
+message NiidTestsDto {
+  /* Normality */
+  optional StatisticalTestDto mean = 1;
+  optional StatisticalTestDto skewness = 2;
+  optional StatisticalTestDto kurtosis = 3;
+  optional StatisticalTestDto doornik_hansen = 4;
+
+  /* Independence */
+  optional StatisticalTestDto ljung_box = 5;
+  optional StatisticalTestDto box_pierce = 6;
+  optional StatisticalTestDto seasonal_ljung_box = 7;
+  optional StatisticalTestDto seasonal_box_pierce = 8;
+
+  /* Randomness */
+  optional StatisticalTestDto runs_number = 9;
+  optional StatisticalTestDto runs_length = 10;
+  optional StatisticalTestDto up_down_runs_number = 11;
+  optional StatisticalTestDto up_down_runs_length = 12;
+
+  /* Linearity */
+  optional StatisticalTestDto ljung_box_on_squares = 13;
+  optional StatisticalTestDto box_pierce_on_squares = 14;
+}
+
+message StatisticalTestDto{
+  double value = 1;
+  double pValue = 2;
+  string description = 3;
+}
+
+message TemporalDisaggregationRequestDto {
+  TsDataDto y = 1;
+  bool constant = 2;
+  bool trend = 3;
+  repeated TsDataDto indicators = 4;
+  string model = 5;
+  bool average = 6;
+  double rho = 7;
+  bool fixedRho = 8;
+  double truncatedRho = 9;
+  bool zeroInit = 10;
+  string algorithm = 11;
+  bool diffuserEgs = 12;
+  optional int32 n_backcasts = 13;
+  optional int32 n_forecasts = 14;
+  optional int32 frequency = 15;
+}
+
+message VersionInfoDto {
+  int32 major = 1;
+  int32 minor = 2;
+  int32 revision = 3;
+}
+
+message TramoRequestDto {
+  TsDataDto series = 1;
+  oneof spec {
+    string defSpec = 2;
+    TramoSpecDto fullSpec = 5;
+  }
+  int32 n_forecasts = 3;
+  optional ModellingContextDto modellingContext = 4;
+
+  string id = 10;
+}
+
+
+enum Transformation {
+  FN_LEVEL = 0;
+  FN_LOG = 1;
+  FN_AUTO = 10;
+}
+
+enum LengthOfPeriod{
+  LP_NONE = 0;
+  LP_LEAPYEAR = 1;
+  LP_LENGTHOFPERIOD = 2;
+}
+enum EasterType {
+  EASTER_UNUSED = 0;
+  EASTER_STANDARD = 1;
+  EASTER_INCLUDEEASTER = 2;
+  EASTER_INCLUDEEASTERMONDAY = 3;
+}
+
+enum TradingDays{
+  TD_NONE = 0;
+  /*
+  mon-fri + sat-sun
+  */
+  TD2 = 1;
+  /*
+  mon-sat + sun
+  */
+  TD2C = 2;
+  /*
+  mon-fri + sat + sun
+  */
+  TD3 = 3;
+  /*
+  mon-thu + fri-sat + sun
+  */
+  TD3C = 4;
+  /*
+  mon-thu + fri + sat + sun
+  */
+  TD4 = 5;
+  TD7 = 6;
+}
+
+enum TradingDaysTest {
+  TD_TEST_NO = 0;
+  TD_TEST_SEPARATE_T = 1;
+  TD_TEST_JOINT_F = 2;
+}
+
+enum AutomaticTradingDays {
+  TD_AUTO_NO = 0;
+  TD_AUTO_FTEST = 1;
+  TD_AUTO_WALD = 2;
+  TD_AUTO_AIC = 3;
+  TD_AUTO_BIC = 4;
+}
+
+message OutlierDto{
+  string name = 1;
+  string code = 2;
+  DateDto position = 3;
+  ParameterDto coefficient = 5;
+  map<string, string> metadata = 6;
+}
+
+message InterventionVariableDto{
+  message SequenceDto {
+    DateDto start = 1;
+    DateDto end = 2;
+  }
+
+  string name = 1;
+  repeated SequenceDto sequences = 2;
+  double delta = 3;
+  double seasonal_delta = 4;
+  ParameterDto coefficient = 5;
+  map<string, string> metadata = 6;
+}
+
+message RampDto{
+  string name = 1;
+  DateDto start = 2;
+  DateDto end = 3;
+  ParameterDto coefficient = 5;
+  map<string, string> metadata = 6;
+}
+
+message TramoSpecDto {
+  BasicSpecDto basic = 1;
+  TransformSpecDto transform = 2;
+  OutlierSpecDto outlier = 3;
+  SarimaSpecDto arima = 4;
+  AutoModelSpecDto automodel = 5;
+  RegressionSpecDto regression = 6;
+  EstimateSpecDto estimate = 7;
+}
+
+message SarimaSpecDto{
+  int32 period = 1;
+  repeated ParameterDto phi = 2;
+  int32 d = 3;
+  repeated ParameterDto theta = 4;
+  repeated ParameterDto bphi = 5;
+  int32 bd = 6;
+  repeated ParameterDto btheta = 7;
+}
+
+message BasicSpecDto {
+  TimeSelectorDto span = 1;
+  bool preliminary_check = 3;
+  int32 annual_frequency = 4;
+}
+
+message TransformSpecDto{
+  Transformation transformation = 1;
+  double fct = 2;
+  LengthOfPeriod adjust = 3;
+  bool outliers_correction = 4;
+}
+
+message OutlierSpecDto{
+  bool enabled = 1;
+  TimeSelectorDto span = 2;
+  bool ao = 3;
+  bool ls = 4;
+  bool tc = 5;
+  bool so = 6;
+  double va = 7;
+  double tcrate = 8;
+  bool ml = 9;
+}
+
+message AutoModelSpecDto{
+  bool enabled = 1;
+  double cancel = 2;
+  double ub1 = 3;
+  double ub2 = 4;
+  double pcr = 5;
+  double pc = 6;
+  double tsig = 7;
+  bool accept_def = 8;
+  bool ami_compare = 9;
+}
+
+message EasterSpecDto{
+  EasterType type = 1;
+  int32 duration = 2;
+  bool julian = 3;
+  bool test = 4;
+  optional ParameterDto coefficient = 10;
+}
+
+message TradingDaysSpecDto{
+  TradingDays td = 1;
+  LengthOfPeriod lp = 2;
+  string holidays = 3;
+  repeated string users = 4;
+  int32 w = 5;
+  TradingDaysTest test = 6;
+  AutomaticTradingDays auto = 7;
+  double ptest = 8;
+  bool auto_adjust = 9;
+  repeated ParameterDto tdcoefficients = 10;
+  optional ParameterDto lpcoefficient = 11;
+}
+
+message RegressionSpecDto{
+  optional ParameterDto mean = 1;
+  bool check_mean = 2;
+  TradingDaysSpecDto td = 3;
+  EasterSpecDto easter = 4;
+  repeated OutlierDto outliers = 5;
+  repeated TsVariableDto users = 6;
+  repeated InterventionVariableDto interventions = 7;
+  repeated RampDto ramps = 8;
+}
+
+message EstimateSpecDto{
+  TimeSelectorDto span = 1;
+  bool ml = 2;
+  double tol = 3;
+  double ubp = 4;
+}
+
+message ModellingContextDto {
+  map<string, CalendarDefinitionDto> calendars = 1;
+  map<string, TsDataSuppliersDto> variables = 2;
+}
+
+message TsDataSuppliersDto {
+  message ItemDto {
+    string name = 1;
+    oneof supplier {
+      TsDataDto data = 2;
+      DynamicTsDataDto dynamic_data = 3;
+    }
+  }
+  repeated ItemDto items = 1;
+}
+
+message DynamicTsDataDto {
+  TsMonikerDto moniker = 1;
+  TsDataDto current = 2;
+}
+
+
+/* Calendars */
+
+message CalendarDefinitionDto {
+  oneof definition {
+    CalendarDto calendar = 1;
+    WeightedCalendarDto  weighted_calendar = 2;
+    ChainedCalendarDto chained_calendar = 3;
+  }
+}
+
+message CalendarDto {
+  repeated FixedDayDto fixed_days = 1;
+  repeated EasterRelatedDayDto easter_related_days = 2;
+  repeated FixedWeekDayDto fixed_week_days = 3;
+  repeated PrespecifiedHolidayDto prespecified_holidays = 4;
+  repeated SingleDateDto single_dates = 5;
+  bool mean_correction = 10;
+}
+
+message WeightedCalendarDto {
+  /* Weighted calendars are only defined inside a modelling context */
+  message ItemDto {
+    string calendar = 1;
+    double weight = 2;
+  }
+  repeated ItemDto items = 1;
+}
+
+/* Chained calendars are only defined inside a modelling context */
+message ChainedCalendarDto {
+  string calendar1 = 1;
+  string calendar2 = 2;
+  DateDto break_date = 3;
+}
+
+message ValidityPeriodDto {
+  DateDto start = 1;
+  DateDto end = 2;
+}
+
+enum CalendarEvent {
+  HOLIDAY_UNSPECIFIED = 0;
+  /**
+   * January, 1
+   */
+  HOLIDAY_NEWYEAR = 1;
+  /**
+   * Shrove Monday (48 days before Easter)
+   */
+  HOLIDAY_SHROVEMONDAY = 2;
+  /**
+   * Shrove Tuesday (47 days before Easter)
+   */
+  HOLIDAY_SHROVETUESDAY = 3;
+  /**
+   * AshWednesday (46 days before Easter)
+   */
+  HOLIDAY_ASHWEDNESDAY = 4;
+  /**
+   * Easter
+   */
+  HOLIDAY_EASTER = 5;
+  /**
+   * Julian Easter.
+   */
+  HOLIDAY_JULIANEASTER = 6;
+  /**
+   * Last Thursday before Easter
+   */
+  HOLIDAY_MAUNDYTHURSDAY = 7;
+  /**
+   * Last Friday before Easter
+   */
+  HOLIDAY_GOODFRIDAY = 8;
+  /**
+   * First Monday after Easter
+   */
+  HOLIDAY_EASTERMONDAY = 9;
+  /**
+   * Ascension (40 days after Easter)
+   */
+  HOLIDAY_ASCENSION = 10;
+  /**
+   * Pentecost (50 days after Easter)
+   */
+  HOLIDAY_PENTECOST = 11;
+  /**
+   * Corpus Christi (60 days after Easter)
+   */
+  HOLIDAY_CORPUSCHRISTI = 12;
+  /**
+   * First Monday after Pentecost (50 days after Easter)
+   */
+  HOLIDAY_WHITMONDAY = 13;
+  /**
+   * May, 1
+   */
+  HOLIDAY_MAYDAY = 14;
+  /**
+   * August, 15
+   */
+  HOLIDAY_ASSUMPTION = 15;
+  /**
+   * Second Tuesday of September
+   */
+  HOLIDAY_LABORDAY = 16;
+  /**
+   * October, 31
+   */
+  HOLIDAY_HALLOWEEN = 17;
+  /**
+   * November, 1
+   */
+  HOLIDAY_ALLSAINTSDAY = 18;
+  /**
+   * November, 11
+   */
+  HOLIDAY_ARMISTICE = 19;
+  /**
+   * Fourth Thursday of November
+   */
+  HOLIDAY_THANKSGIVING = 20;
+  /**
+   * December, 25
+   */
+  HOLIDAY_CHRISTMAS = 21;
+}
+
+message SingleDateDto{
+  DateDto date = 1;
+  double weight = 2;
+}
+
+message FixedDayDto{
+  int32 month = 1;
+  int32 day = 2;
+  double weight = 3;
+  ValidityPeriodDto validity = 4;
+}
+
+message EasterRelatedDayDto{
+  int32 offset = 1;
+  bool julian = 2;
+  double weight = 3;
+  ValidityPeriodDto validity = 4;
+}
+
+message PrespecifiedHolidayDto{
+  CalendarEvent event = 1;
+  int32 offset = 2;
+  double weight = 3;
+  ValidityPeriodDto validity = 4;
+}
+
+message FixedWeekDayDto {
+  int32 month = 1;
+  /* Corresponds to the first, second...)*/
+  int32 position = 2;
+  /* ISO-8601 standard, from 1 (Monday) to 7 (Sunday) */
+  int32 weekday = 3;
+  double weight = 4;
+  ValidityPeriodDto validity = 5;
+}
+
+message TramoOutputDto {
+  RegArimaModelDto result = 1;
+  TramoSpecDto estimation_spec = 2;
+  optional TramoSpecDto result_spec = 3;
+  optional ProcessingLogsDto log = 4;
+  map<string, ProcessingDetailDto> details = 5;
+
+  string id = 10;
+}
+
+message DoublesDto {
+  string name = 1;
+  repeated double values = 2;
+}
+
+message ProcessingDetailDto {
+  oneof data{
+    TsDataDto ts = 1;
+    DoublesDto array = 2;
+    MatrixDto matrix = 3;
+    StatisticalTestDto test = 4;
+    string message = 5;
+    int32 ivalue = 6;
+    double dvalue = 7;
+  }
+}
+
+enum InformationType {
+  INFORMATION_TYPE_INFO = 0;
+  INFORMATION_TYPE_WARNING = 1;
+  INFORMATION_TYPE_ERROR = 2;
+}
+
+message ProcessingInformationDto {
+  string name = 1;
+  string origin = 2;
+  string msg = 3;
+  InformationType type = 4;
+  ProcessingDetailDto details = 5;
+}
+
+message ProcessingLogsDto {
+  repeated ProcessingInformationDto log = 1;
+}
+
+message RegArimaModelDto {
+  message DescriptionDto {
+    TsDataDto series = 1;
+    bool log = 2;
+    LengthOfPeriod preadjustment = 3;
+    repeated RegressionVariableDto variables = 4;
+    SarimaSpecDto arima = 5;
+  }
+
+  message EstimationDto {
+    /* Model  y = Xb + u */
+    repeated double y = 1;
+    MatrixDto x = 2;
+    repeated double b = 3;
+    MatrixDto bcovariance = 4;
+    ParametersEstimationDto parameters = 5;
+    LikelihoodStatisticsDto likelihood = 6;
+    repeated double residuals = 7;
+    repeated MissingEstimationDto missings = 8;
+  }
+
+  message MissingEstimationDto {
+    int32 position = 1;
+    double value = 10;
+    double stde = 11;
+  }
+
+  DescriptionDto description = 1;
+  EstimationDto estimation = 2;
+  DiagnosticsDto diagnostics = 5;
+}
+
+message RegressionVariableDto {
+  string name = 1;
+  VariableType var_type = 2;
+  map<string, string> metadata = 3;
+  repeated ParameterDto coefficients = 4;
+}
+
+message ParametersEstimationDto {
+  repeated double value = 1;
+  repeated double score = 2;
+  MatrixDto covariance = 3;
+  optional string description = 4;
+}
+
+message DiagnosticsDto {
+  map<string, StatisticalTestDto> residuals_tests = 1;
+}
+
+enum VariableType{
+  VAR_UNSPECIFIED = 0;
+  VAR_MEAN = 1;
+  VAR_TD = 10;
+  VAR_LP = 11;
+  VAR_EASTER = 12;
+  VAR_AO = 20;
+  VAR_LS = 21;
+  VAR_TC = 22;
+  VAR_SO = 23;
+  VAR_OUTLIER = 29;
+  VAR_IV = 30;
+  VAR_RAMP = 40;
+}

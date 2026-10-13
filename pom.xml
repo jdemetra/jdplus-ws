@@ -156,6 +156,16 @@
             <version>${jd3.version}</version>
         </dependency>
         <dependency>
+            <groupId>eu.europa.ec.joinup.sat</groupId>
+            <artifactId>jdplus-tramoseats-base-core</artifactId>
+            <version>${jd3.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>eu.europa.ec.joinup.sat</groupId>
+            <artifactId>jdplus-benchmarking-base-core</artifactId>
+            <version>2.2.0</version>
+        </dependency>
+        <dependency>
             <groupId>io.quarkus</groupId>
             <artifactId>quarkus-grpc</artifactId>
         </dependency>
@@ -546,9 +556,8 @@
                             <javaVersion>${maven.compiler.release}</javaVersion>
                             <!-- 2.6 forbidden source code -->
                             <ignoreClassNamePatterns>
-                                <!-- Bulletproof pattern matching trailing 'Protos' and its nested classes -->
-                                <ignoreClassNamePattern>.*/[^/]*Protos(\$.*)?</ignoreClassNamePattern>
-                                <ignoreClassNamePattern>.*/[^/]*ToolkitMessages(\$.*)?</ignoreClassNamePattern>
+                                <!-- Bulletproof pattern matching trailing 'Dto' -->
+                                <ignoreClassNamePattern>.*/[^/]*Dto(\$.*)?</ignoreClassNamePattern>
                             </ignoreClassNamePatterns>
                         </configuration>
                     </execution>

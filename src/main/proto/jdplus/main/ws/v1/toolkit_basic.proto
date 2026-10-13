@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package jdplus.main.ws.v1;
+
+option java_package = "jdplus.main.ws.v1";
+option csharp_namespace = "JDPlus.Main.WS.V1";
+
+import "jdplus/main/ws/v1/toolkit_messages.proto";
+
+service TsFunctions {
+  rpc GetVersion(EmptyDto) returns (VersionInfoDto);
+
+  /* Compute (y-mean(y))/stdev(y) */
+  rpc Normalize(TsFunctionInputDto) returns (TsFunctionOutputDto);
+  rpc NormalizeStream(stream TsFunctionInputDto) returns (stream TsFunctionOutputDto);
+
+  /* Basic descriptive statistics */
+  rpc Statistics(TsFunctionInputDto) returns (DescriptiveStatisticsDto);
+  rpc StatisticsStream(stream TsFunctionInputDto) returns (stream DescriptiveStatisticsDto);
+
+  rpc Pct(PctInputDto) returns (TsFunctionOutputDto);
+  rpc PctStream(stream PctInputDto) returns (stream TsFunctionOutputDto);
+
+  rpc Delta(DeltaInputDto) returns (TsFunctionOutputDto);
+  rpc DeltaStream(stream DeltaInputDto) returns (stream TsFunctionOutputDto);
+
+  rpc Aggregate(AggregationInputDto) returns (TsFunctionOutputDto);
+  rpc AggregateStream(stream AggregationInputDto) returns (stream TsFunctionOutputDto);
+
+  rpc HodrickPrescott(HodrickPrescottInputDto) returns (HodrickPrescottOutputDto);
+  rpc HodrickPrescottStream(stream HodrickPrescottInputDto) returns (stream HodrickPrescottOutputDto);
+
+  rpc BuildTsData(BuildTsDataInputDto) returns (TsFunctionOutputDto);
+  rpc BuildTsDataStream(stream BuildTsDataInputDto) returns (stream TsFunctionOutputDto);
+
+  rpc BuildTsDataTable(BuildTsDataTableInputDto) returns (BuildTsDataTableOutputDto);
+
+  rpc ProcessTemporalDisaggregation(TemporalDisaggregationRequestDto) returns (TemporalDisaggregationResultsDto);
+
+  rpc TramoForecast(TramoRequestDto) returns (TsMatrixDto);
+  rpc TramoForecastStream(stream TramoRequestDto) returns (stream TsMatrixDto);
+
+  rpc TramoFullProcess(TramoRequestDto) returns (TramoOutputDto);
+
+
+
+}

@@ -1,4 +1,6 @@
-package jdplus.main.ws;
+package jdplus.main.ws.v1;
+
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 
 import io.quarkus.grpc.GrpcService;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -12,8 +14,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-
 @Path("/hello")
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
@@ -21,11 +21,18 @@ import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
 @RegisterForReflection
 public class TsFunctionsService implements TsFunctions {
 
-    @RequestBody(
-            content = @Content(
-                    examples = @ExampleObject(
-                            name = "Example 1",
-                            value = """
+    @Override
+    public Uni<VersionInfoDto> getVersion(EmptyDto request) {
+        // TODO: improve version management
+        return Uni.createFrom()
+                .item(VersionInfoDto.newBuilder()
+                        .setMajor(0)
+                        .setMinor(2)
+                        .setRevision(0)
+                        .build());
+    }
+
+    @RequestBody(content = @Content(examples = @ExampleObject(name = "Example 1", value = """
                                     {
                                       "id": "Example 1",
                                       "series": {
@@ -37,22 +44,15 @@ public class TsFunctionsService implements TsFunctions {
                                         "values": [ 3.0, 4.0 ]
                                       }
                                     }
-                                    """
-                    )
-            )
-    )
+                                    """)))
     @POST
     @Path("/normalize")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutput> normalize(ToolkitMessages.TsFunctionInput request) {
+    public Uni<TsFunctionOutputDto> normalize(TsFunctionInputDto request) {
         return Uni.createFrom().item(Helpers.normalize(request));
     }
 
-    @RequestBody(
-            content = @Content(
-                    examples = @ExampleObject(
-                            name = "Example 1",
-                            value = """
+    @RequestBody(content = @Content(examples = @ExampleObject(name = "Example 1", value = """
                                     {
                                       "id": "Example 1",
                                       "series": {
@@ -64,50 +64,43 @@ public class TsFunctionsService implements TsFunctions {
                                         "values": [ 0, 1, 2, 3, 4, 5, 6, 7 ]
                                       }
                                     }
-                                    """
-                    )
-            )
-    )
+                                    """)))
     @POST
     @Path("/statistics")
     @Override
-    public Uni<ToolkitMessages.DescriptiveStatistics> statistics(ToolkitMessages.TsFunctionInput request) {
+    public Uni<DescriptiveStatisticsDto> statistics(TsFunctionInputDto request) {
         return Uni.createFrom().item(Helpers.statistics(request));
     }
 
     @POST
     @Path("/pct")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutput> pct(ToolkitMessages.PctInput request) {
+    public Uni<TsFunctionOutputDto> pct(PctInputDto request) {
         return Uni.createFrom().item(Helpers.pct(request));
     }
 
     @POST
     @Path("/delta")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutput> delta(ToolkitMessages.DeltaInput request) {
+    public Uni<TsFunctionOutputDto> delta(DeltaInputDto request) {
         return Uni.createFrom().item(Helpers.delta(request));
     }
 
     @POST
     @Path("/aggregate")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutput> aggregate(ToolkitMessages.AggregationInput request) {
+    public Uni<TsFunctionOutputDto> aggregate(AggregationInputDto request) {
         return Uni.createFrom().item(Helpers.aggregate(request));
     }
 
     @POST
     @Path("/hodrickPrescott")
     @Override
-    public Uni<ToolkitMessages.HodrickPrescottOutput> hodrickPrescott(ToolkitMessages.HodrickPrescottInput request) {
+    public Uni<HodrickPrescottOutputDto> hodrickPrescott(HodrickPrescottInputDto request) {
         return Uni.createFrom().item(Helpers.hodrickPrescott(request));
     }
 
-    @RequestBody(
-            content = @Content(
-                    examples = @ExampleObject(
-                            name = "Example 1",
-                            value = """
+    @RequestBody(content = @Content(examples = @ExampleObject(name = "Example 1", value = """
                                     {
                                       "id": "Example 1",
                                       "gathering": {
@@ -127,57 +120,50 @@ public class TsFunctionsService implements TsFunctions {
                                         }
                                       ]
                                     }
-                                    """
-                    )
-            )
-    )
+                                    """)))
     @POST
     @Path("/buildTsData")
     @Override
-    public Uni<ToolkitMessages.TsFunctionOutput> buildTsData(ToolkitMessages.BuildTsDataInput request) {
+    public Uni<TsFunctionOutputDto> buildTsData(BuildTsDataInputDto request) {
         return Uni.createFrom().item(Helpers.buildTsData(request));
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutput> normalizeStream(Multi<ToolkitMessages.TsFunctionInput> request) {
+    public Multi<TsFunctionOutputDto> normalizeStream(Multi<TsFunctionInputDto> request) {
         return request.onItem().transform(Helpers::normalize);
     }
 
     @Override
-    public Multi<ToolkitMessages.DescriptiveStatistics> statisticsStream(Multi<ToolkitMessages.TsFunctionInput> request) {
+    public Multi<DescriptiveStatisticsDto> statisticsStream(Multi<TsFunctionInputDto> request) {
         return request.onItem().transform(Helpers::statistics);
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutput> pctStream(Multi<ToolkitMessages.PctInput> request) {
+    public Multi<TsFunctionOutputDto> pctStream(Multi<PctInputDto> request) {
         return request.onItem().transform(Helpers::pct);
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutput> deltaStream(Multi<ToolkitMessages.DeltaInput> request) {
+    public Multi<TsFunctionOutputDto> deltaStream(Multi<DeltaInputDto> request) {
         return request.onItem().transform(Helpers::delta);
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutput> aggregateStream(Multi<ToolkitMessages.AggregationInput> request) {
+    public Multi<TsFunctionOutputDto> aggregateStream(Multi<AggregationInputDto> request) {
         return request.onItem().transform(Helpers::aggregate);
     }
 
     @Override
-    public Multi<ToolkitMessages.HodrickPrescottOutput> hodrickPrescottStream(Multi<ToolkitMessages.HodrickPrescottInput> request) {
+    public Multi<HodrickPrescottOutputDto> hodrickPrescottStream(Multi<HodrickPrescottInputDto> request) {
         return request.onItem().transform(Helpers::hodrickPrescott);
     }
 
     @Override
-    public Multi<ToolkitMessages.TsFunctionOutput> buildTsDataStream(Multi<ToolkitMessages.BuildTsDataInput> request) {
+    public Multi<TsFunctionOutputDto> buildTsDataStream(Multi<BuildTsDataInputDto> request) {
         return request.onItem().transform(Helpers::buildTsData);
     }
 
-    @RequestBody(
-            content = @Content(
-                    examples = @ExampleObject(
-                            name = "Example 1",
-                            value = """
+    @RequestBody(content = @Content(examples = @ExampleObject(name = "Example 1", value = """
                                     {
                                       "id": "Example 1",
                                       "distributionType": "DIST_FIRST",
@@ -203,14 +189,32 @@ public class TsFunctionsService implements TsFunctions {
                                         }
                                       ]
                                     }
-                                    """
-                    )
-            )
-    )
+                                    """)))
     @POST
     @Path("/buildTsDataTable")
     @Override
-    public Uni<ToolkitMessages.BuildTsDataTableOutput> buildTsDataTable(ToolkitMessages.BuildTsDataTableInput request) {
+    public Uni<BuildTsDataTableOutputDto> buildTsDataTable(BuildTsDataTableInputDto request) {
         return Uni.createFrom().item(Helpers.buildTsDataTable(request));
+    }
+
+    @Override
+    public Uni<TemporalDisaggregationResultsDto> processTemporalDisaggregation(
+            TemporalDisaggregationRequestDto request) {
+        return Uni.createFrom().item(Helpers.processTemporalDisaggregation(request));
+    }
+
+    @Override
+    public Uni<TsMatrixDto> tramoForecast(TramoRequestDto request) {
+        return Uni.createFrom().item(Helpers.tramoForecast(request));
+    }
+
+    @Override
+    public Multi<TsMatrixDto> tramoForecastStream(Multi<TramoRequestDto> request) {
+        return request.onItem().transform(Helpers::tramoForecast);
+    }
+
+    @Override
+    public Uni<TramoOutputDto> tramoFullProcess(TramoRequestDto request) {
+        return Uni.createFrom().item(Helpers.tramoFullProcess(request));
     }
 }
