@@ -13,9 +13,9 @@ public class TemporalDisaggregationMapping {
                 .setHyperParametersCount(value.getHyperParametersCount())
                 .setLikelihood(DiffuseConcentratedLikelihoodMapping.toDto(value.getLikelihood()))
                 .setStats(LikelihoodStatisticsMapping.toDto(value.getStats()))
-                //.setResidualsDiagnostics(ResidualsDiagnosticsMapping.toDto(value.getResidualsDiagnostics()))
                 .setDisaggregatedSeries(TsDataMapping.toDto(value.getDisaggregatedSeries()))
-                .setStDevDisaggregatedSeries(TsDataMapping.toDto(value.getStdevDisaggregatedSeries()));
+                .setStDevDisaggregatedSeries(TsDataMapping.toDto(value.getStdevDisaggregatedSeries()))
+                .setResidualsDiagnostics(ResidualsDiagnosticsMapping.toDto(value.getResidualsDiagnostics()));
 
         if (value.getMaximum() != null)
             result.setMaximum(ObjectiveFunctionPointMapping.toDto(value.getMaximum()));
