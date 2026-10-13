@@ -1,7 +1,6 @@
 package jdplus.main.ws.v1.mappers;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import jdplus.main.ws.v1.ParameterDto;
 import jdplus.toolkit.base.api.data.Parameter;
@@ -27,7 +26,7 @@ public class ParameterMapping {
 
     public static List<ParameterDto> toDto(Parameter[] p) {
         if (p == null || p.length == 0) {
-            return Collections.emptyList();
+            return List.of();
         }
         ArrayList<ParameterDto> list = new ArrayList<>();
         for (Parameter parameter : p) {

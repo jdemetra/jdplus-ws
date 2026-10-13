@@ -556,9 +556,8 @@
                             <javaVersion>${maven.compiler.release}</javaVersion>
                             <!-- 2.6 forbidden source code -->
                             <ignoreClassNamePatterns>
-                                <!-- Bulletproof pattern matching trailing 'Protos' and its nested classes -->
-                                <ignoreClassNamePattern>.*/[^/]*Protos(\$.*)?</ignoreClassNamePattern>
-                                <ignoreClassNamePattern>.*/[^/]*ToolkitMessages(\$.*)?</ignoreClassNamePattern>
+                                <!-- Bulletproof pattern matching trailing 'Dto' -->
+                                <ignoreClassNamePattern>.*/[^/]*Dto(\$.*)?</ignoreClassNamePattern>
                             </ignoreClassNamePatterns>
                         </configuration>
                     </execution>
