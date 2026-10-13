@@ -19,7 +19,9 @@ public class TsDataSuppliersMapping {
         if (dto.hasData()) {
             return new StaticTsDataSupplier(TsDataMapping.toModel(dto.getData()));
         } else if (dto.hasDynamicData()) {
-            return new DynamicTsDataSupplier(TsMonikerMapping.toModel(dto.getDynamicData().getMoniker()), TsDataMapping.toModel(dto.getDynamicData().getCurrent()));
+            return new DynamicTsDataSupplier(
+                    TsMonikerMapping.toModel(dto.getDynamicData().getMoniker()),
+                    TsDataMapping.toModel(dto.getDynamicData().getCurrent()));
         } else {
             return null;
         }

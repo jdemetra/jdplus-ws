@@ -1,14 +1,13 @@
 package jdplus.main.ws.v1.mappers;
 
+import java.time.DayOfWeek;
+import java.util.ArrayList;
+import java.util.List;
 import jdplus.main.ws.v1.*;
 import jdplus.toolkit.base.api.timeseries.ValidityPeriod;
 import jdplus.toolkit.base.api.timeseries.calendars.*;
 import jdplus.toolkit.base.api.util.WeightedItem;
 import lombok.NonNull;
-
-import java.time.DayOfWeek;
-import java.util.ArrayList;
-import java.util.List;
 
 public class CalendarsMapping {
     public static CalendarDefinition toModel(CalendarDefinitionDto dto) {
@@ -31,7 +30,8 @@ public class CalendarsMapping {
     }
 
     private static ChainedCalendar toModel(ChainedCalendarDto dto) {
-        return new ChainedCalendar(dto.getCalendar1(), dto.getCalendar2(), LocalDateMapping.toModel(dto.getBreakDate()));
+        return new ChainedCalendar(
+                dto.getCalendar1(), dto.getCalendar2(), LocalDateMapping.toModel(dto.getBreakDate()));
     }
 
     private static Calendar toModel(CalendarDto dto) {
@@ -85,7 +85,12 @@ public class CalendarsMapping {
     }
 
     private static FixedWeekDay toModel(FixedWeekDayDto dto) {
-        return new FixedWeekDay(dto.getMonth(), dto.getPosition(), DayOfWeek.of(dto.getWeekday()), dto.getWeight(), toModel(dto.getValidity()));
+        return new FixedWeekDay(
+                dto.getMonth(),
+                dto.getPosition(),
+                DayOfWeek.of(dto.getWeekday()),
+                dto.getWeight(),
+                toModel(dto.getValidity()));
     }
 
     private static FixedWeekDayDto toDto(@NonNull FixedWeekDay fd) {

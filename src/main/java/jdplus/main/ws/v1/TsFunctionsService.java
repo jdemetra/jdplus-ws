@@ -1,5 +1,7 @@
 package jdplus.main.ws.v1;
 
+import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
+
 import io.quarkus.grpc.GrpcService;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import io.smallrye.mutiny.Multi;
@@ -12,9 +14,6 @@ import org.eclipse.microprofile.openapi.annotations.media.Content;
 import org.eclipse.microprofile.openapi.annotations.media.ExampleObject;
 import org.eclipse.microprofile.openapi.annotations.parameters.RequestBody;
 
-
-import static jakarta.ws.rs.core.MediaType.APPLICATION_JSON;
-
 @Path("/hello")
 @Consumes(APPLICATION_JSON)
 @Produces(APPLICATION_JSON)
@@ -25,18 +24,15 @@ public class TsFunctionsService implements TsFunctions {
     @Override
     public Uni<VersionInfoDto> getVersion(EmptyDto request) {
         // TODO: improve version management
-        return Uni.createFrom().item(VersionInfoDto.newBuilder()
-                .setMajor(0)
-                .setMinor(2)
-                .setRevision(0)
-                .build());
+        return Uni.createFrom()
+                .item(VersionInfoDto.newBuilder()
+                        .setMajor(0)
+                        .setMinor(2)
+                        .setRevision(0)
+                        .build());
     }
 
-    @RequestBody(
-            content = @Content(
-                    examples = @ExampleObject(
-                            name = "Example 1",
-                            value = """
+    @RequestBody(content = @Content(examples = @ExampleObject(name = "Example 1", value = """
                                     {
                                       "id": "Example 1",
                                       "series": {
@@ -48,10 +44,7 @@ public class TsFunctionsService implements TsFunctions {
                                         "values": [ 3.0, 4.0 ]
                                       }
                                     }
-                                    """
-                    )
-            )
-    )
+                                    """)))
     @POST
     @Path("/normalize")
     @Override
@@ -59,11 +52,7 @@ public class TsFunctionsService implements TsFunctions {
         return Uni.createFrom().item(Helpers.normalize(request));
     }
 
-    @RequestBody(
-            content = @Content(
-                    examples = @ExampleObject(
-                            name = "Example 1",
-                            value = """
+    @RequestBody(content = @Content(examples = @ExampleObject(name = "Example 1", value = """
                                     {
                                       "id": "Example 1",
                                       "series": {
@@ -75,10 +64,7 @@ public class TsFunctionsService implements TsFunctions {
                                         "values": [ 0, 1, 2, 3, 4, 5, 6, 7 ]
                                       }
                                     }
-                                    """
-                    )
-            )
-    )
+                                    """)))
     @POST
     @Path("/statistics")
     @Override
@@ -114,11 +100,7 @@ public class TsFunctionsService implements TsFunctions {
         return Uni.createFrom().item(Helpers.hodrickPrescott(request));
     }
 
-    @RequestBody(
-            content = @Content(
-                    examples = @ExampleObject(
-                            name = "Example 1",
-                            value = """
+    @RequestBody(content = @Content(examples = @ExampleObject(name = "Example 1", value = """
                                     {
                                       "id": "Example 1",
                                       "gathering": {
@@ -138,10 +120,7 @@ public class TsFunctionsService implements TsFunctions {
                                         }
                                       ]
                                     }
-                                    """
-                    )
-            )
-    )
+                                    """)))
     @POST
     @Path("/buildTsData")
     @Override
@@ -184,11 +163,7 @@ public class TsFunctionsService implements TsFunctions {
         return request.onItem().transform(Helpers::buildTsData);
     }
 
-    @RequestBody(
-            content = @Content(
-                    examples = @ExampleObject(
-                            name = "Example 1",
-                            value = """
+    @RequestBody(content = @Content(examples = @ExampleObject(name = "Example 1", value = """
                                     {
                                       "id": "Example 1",
                                       "distributionType": "DIST_FIRST",
@@ -214,10 +189,7 @@ public class TsFunctionsService implements TsFunctions {
                                         }
                                       ]
                                     }
-                                    """
-                    )
-            )
-    )
+                                    """)))
     @POST
     @Path("/buildTsDataTable")
     @Override
@@ -226,7 +198,8 @@ public class TsFunctionsService implements TsFunctions {
     }
 
     @Override
-    public Uni<TemporalDisaggregationResultsDto> processTemporalDisaggregation(TemporalDisaggregationRequestDto request) {
+    public Uni<TemporalDisaggregationResultsDto> processTemporalDisaggregation(
+            TemporalDisaggregationRequestDto request) {
         return Uni.createFrom().item(Helpers.processTemporalDisaggregation(request));
     }
 

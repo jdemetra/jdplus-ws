@@ -1,5 +1,6 @@
 package jdplus.main.ws.v1.mappers;
 
+import java.util.List;
 import jdplus.main.ws.v1.*;
 import jdplus.toolkit.base.api.arima.SarimaSpec;
 import jdplus.toolkit.base.api.data.Parameter;
@@ -7,8 +8,6 @@ import jdplus.toolkit.base.api.timeseries.calendars.LengthOfPeriodType;
 import jdplus.toolkit.base.api.timeseries.calendars.TradingDaysType;
 import jdplus.toolkit.base.api.timeseries.regression.*;
 import jdplus.tramoseats.base.api.tramo.*;
-
-import java.util.List;
 
 public class SpecsMapping {
     public static TramoSpec toModel(TramoSpecDto dto) {
@@ -211,9 +210,7 @@ public class SpecsMapping {
             }
         }
 
-        RegressionSpec.Builder builder = RegressionSpec.builder()
-                .mean(mean)
-                .calendar(cBuilder.build());
+        RegressionSpec.Builder builder = RegressionSpec.builder().mean(mean).calendar(cBuilder.build());
 
         int n = dto.getOutliersCount();
         for (int i = 0; i < n; ++i) {
@@ -239,8 +236,7 @@ public class SpecsMapping {
             builder.ramp(VariableMapping.toModel(var));
         }
 
-        return builder
-                .build();
+        return builder.build();
     }
 
     public static RegressionSpecDto toDto(RegressionSpec spec) {
@@ -249,9 +245,8 @@ public class SpecsMapping {
                 .setTd(toDto(spec.getCalendar().getTradingDays()));
 
         MeanSpec mean = spec.getMean();
-        if ( mean.isUsed()){
-            builder.setMean(ParameterMapping.toDto(mean.getCoefficient()))
-                    .setCheckMean(mean.isTest());
+        if (mean.isUsed()) {
+            builder.setMean(ParameterMapping.toDto(mean.getCoefficient())).setCheckMean(mean.isTest());
         } else {
             // unused -> Parameter = unused
             builder.clearMean().setCheckMean(false);
@@ -284,8 +279,7 @@ public class SpecsMapping {
                 .test(dto.getTest())
                 .julian(dto.getJulian());
 
-        if (dto.hasCoefficient())
-            builder.coefficient(ParameterMapping.toModel(dto.getCoefficient()));
+        if (dto.hasCoefficient()) builder.coefficient(ParameterMapping.toModel(dto.getCoefficient()));
 
         return builder.build();
     }
@@ -298,8 +292,7 @@ public class SpecsMapping {
                 .setTest(spec.isTest());
 
         Parameter c = spec.getCoefficient();
-        if (c != null)
-            builder.setCoefficient(ParameterMapping.toDto(c));
+        if (c != null) builder.setCoefficient(ParameterMapping.toDto(c));
         return builder.build();
     }
 
@@ -317,7 +310,8 @@ public class SpecsMapping {
                 return TradingDaysSpec.automaticHolidays(holidays, lp, auto, dto.getPtest(), dto.getAutoAdjust());
             }
             if (test) {
-                return TradingDaysSpec.holidays(holidays, td, lp, EnumsMapping.toModel(dto.getTest()), dto.getAutoAdjust());
+                return TradingDaysSpec.holidays(
+                        holidays, td, lp, EnumsMapping.toModel(dto.getTest()), dto.getAutoAdjust());
             } else {
                 return TradingDaysSpec.holidays(holidays, td, lp, tdc, lpc);
             }
@@ -379,8 +373,7 @@ public class SpecsMapping {
 
         int w = spec.getStockTradingDays();
         if (w > 0) {
-            builder.setW(w)
-                    .setTest(EnumsMapping.toDto(spec.getRegressionTestType()));
+            builder.setW(w).setTest(EnumsMapping.toDto(spec.getRegressionTestType()));
             return;
         }
         if (spec.isAutomatic()) {

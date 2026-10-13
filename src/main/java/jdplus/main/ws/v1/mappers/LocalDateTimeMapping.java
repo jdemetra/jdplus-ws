@@ -1,8 +1,7 @@
 package jdplus.main.ws.v1.mappers;
 
-import jdplus.main.ws.v1.DateDto;
-
 import java.time.LocalDateTime;
+import jdplus.main.ws.v1.DateDto;
 
 public class LocalDateTimeMapping {
     public static LocalDateTime toModel(DateDto value) {

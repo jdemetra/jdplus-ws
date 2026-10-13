@@ -58,13 +58,15 @@ public class TramoOutputMapping {
             switch (data) {
                 case TsData tsData -> builder.setTs(TsDataMapping.toDto(tsData));
                 case Matrix matrix -> builder.setMatrix(MatrixMapping.toDto(matrix));
-                case DoubleSeq seq -> builder.setArray(DoublesDto.newBuilder().addAllValues(Iterables.of(seq)).build());
+                case DoubleSeq seq ->
+                    builder.setArray(DoublesDto.newBuilder()
+                            .addAllValues(Iterables.of(seq))
+                            .build());
                 case StatisticalTest test -> builder.setTest(StatisticalTestMapping.toDto(test));
                 case Double d -> builder.setDvalue(d);
                 case Integer integer -> builder.setIvalue(integer);
                 case String message -> builder.setMessage(message);
-                default -> {
-                }
+                default -> {}
             }
         }
 

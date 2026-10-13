@@ -14,8 +14,7 @@ public class MatrixMapping {
             return MatrixDto.getDefaultInstance();
         }
 
-        return MatrixDto
-                .newBuilder()
+        return MatrixDto.newBuilder()
                 .setNrows(m.getRowsCount())
                 .setNcols(m.getColumnsCount())
                 .addAllValues(Iterables.of(m.toArray()))

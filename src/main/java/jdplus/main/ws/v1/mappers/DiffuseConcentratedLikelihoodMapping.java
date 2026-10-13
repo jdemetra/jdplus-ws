@@ -5,8 +5,7 @@ import jdplus.toolkit.base.core.stats.likelihood.DiffuseConcentratedLikelihood;
 
 public class DiffuseConcentratedLikelihoodMapping {
     public static DiffuseConcentratedLikelihoodDto toDto(DiffuseConcentratedLikelihood value) {
-        DiffuseConcentratedLikelihoodDto.Builder result = DiffuseConcentratedLikelihoodDto
-                .newBuilder()
+        DiffuseConcentratedLikelihoodDto.Builder result = DiffuseConcentratedLikelihoodDto.newBuilder()
                 .setLl(value.logLikelihood())
                 .setSsqerr(value.ssq())
                 .setLdet(value.logDeterminant())

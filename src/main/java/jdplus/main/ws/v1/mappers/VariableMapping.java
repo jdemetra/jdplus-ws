@@ -1,5 +1,8 @@
 package jdplus.main.ws.v1.mappers;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
 import jdplus.main.ws.v1.InterventionVariableDto;
 import jdplus.main.ws.v1.OutlierDto;
 import jdplus.main.ws.v1.RampDto;
@@ -7,10 +10,6 @@ import jdplus.main.ws.v1.TsVariableDto;
 import jdplus.toolkit.base.api.data.Parameter;
 import jdplus.toolkit.base.api.data.Range;
 import jdplus.toolkit.base.api.timeseries.regression.*;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
 
 public class VariableMapping {
     public static TsVariableDto toTsVariableDto(Variable<TsContextVariable> v) {
@@ -51,7 +50,7 @@ public class VariableMapping {
         return Variable.<IOutlier>builder()
                 .core(o)
                 .name(outlier.getName())
-                .coefficients(c == null ? null : new Parameter[]{c})
+                .coefficients(c == null ? null : new Parameter[] {c})
                 .attributes(outlier.getMetadataMap())
                 .build();
     }
@@ -72,7 +71,7 @@ public class VariableMapping {
                 .name(v.getName())
                 .core(new TsContextVariable(v.getId(), v.getLag()))
                 .attributes(v.getMetadataMap())
-                .coefficients(c == null ? null : new Parameter[]{c})
+                .coefficients(c == null ? null : new Parameter[] {c})
                 .build();
     }
 
@@ -84,7 +83,7 @@ public class VariableMapping {
                 .name(v.getName())
                 .core(new Ramp(start.atStartOfDay(), end.atStartOfDay()))
                 .attributes(v.getMetadataMap())
-                .coefficients(c == null ? null : new Parameter[]{c})
+                .coefficients(c == null ? null : new Parameter[] {c})
                 .build();
     }
 
@@ -99,9 +98,8 @@ public class VariableMapping {
     }
 
     public static Variable<InterventionVariable> toModel(InterventionVariableDto v) {
-        InterventionVariable.Builder builder = InterventionVariable.builder()
-                .delta(v.getDelta())
-                .deltaSeasonal(v.getSeasonalDelta());
+        InterventionVariable.Builder builder =
+                InterventionVariable.builder().delta(v.getDelta()).deltaSeasonal(v.getSeasonalDelta());
         int n = v.getSequencesCount();
         for (int i = 0; i < n; ++i) {
             InterventionVariableDto.SequenceDto seq = v.getSequences(i);
@@ -113,7 +111,7 @@ public class VariableMapping {
         return Variable.<InterventionVariable>builder()
                 .name(v.getName())
                 .core(builder.build())
-                .coefficients(c == null ? null : new Parameter[]{c})
+                .coefficients(c == null ? null : new Parameter[] {c})
                 .attributes(v.getMetadataMap())
                 .build();
     }
@@ -128,7 +126,7 @@ public class VariableMapping {
                 .putAllMetadata(var.getAttributes());
 
         List<Range<LocalDateTime>> seqs = v.getSequences();
-        for (Range<LocalDateTime> seq :seqs) {
+        for (Range<LocalDateTime> seq : seqs) {
             builder.addSequences(InterventionVariableDto.SequenceDto.newBuilder()
                     .setStart(LocalDateMapping.toDto(seq.start().toLocalDate()))
                     .setEnd(LocalDateMapping.toDto(seq.end().toLocalDate()))

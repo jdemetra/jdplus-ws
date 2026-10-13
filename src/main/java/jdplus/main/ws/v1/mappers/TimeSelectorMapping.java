@@ -1,10 +1,9 @@
 package jdplus.main.ws.v1.mappers;
 
+import java.time.LocalDate;
 import jdplus.main.ws.v1.SelectionType;
 import jdplus.main.ws.v1.TimeSelectorDto;
 import jdplus.toolkit.base.api.timeseries.TimeSelector;
-
-import java.time.LocalDate;
 
 public class TimeSelectorMapping {
     public static TimeSelectorDto toDto(TimeSelector sel) {
@@ -28,17 +27,13 @@ public class TimeSelectorMapping {
                         .setD1(LocalDateMapping.toDto(sel.getD1().toLocalDate()));
                 break;
             case First:
-                builder.setType(SelectionType.SPAN_FIRST)
-                        .setN0(sel.getN0());
+                builder.setType(SelectionType.SPAN_FIRST).setN0(sel.getN0());
                 break;
             case Last:
-                builder.setType(SelectionType.SPAN_LAST)
-                        .setN1(sel.getN1());
+                builder.setType(SelectionType.SPAN_LAST).setN1(sel.getN1());
                 break;
             case Excluding:
-                builder.setType(SelectionType.SPAN_EXCLUDING)
-                        .setN0(sel.getN0())
-                        .setN1(sel.getN1());
+                builder.setType(SelectionType.SPAN_EXCLUDING).setN0(sel.getN0()).setN1(sel.getN1());
                 break;
 
             default:
@@ -81,6 +76,4 @@ public class TimeSelectorMapping {
                 return TimeSelector.none();
         }
     }
-
-
 }

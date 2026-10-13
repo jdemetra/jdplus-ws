@@ -1,13 +1,12 @@
 package jdplus.main.ws.v1.mappers;
 
+import java.util.Arrays;
 import jdplus.main.ws.v1.TemporalDisaggregationResultsDto;
 
-import java.util.Arrays;
-
 public class TemporalDisaggregationMapping {
-    public static TemporalDisaggregationResultsDto toDto(jdplus.benchmarking.base.core.univariate.TemporalDisaggregationResults value) {
-        TemporalDisaggregationResultsDto.Builder result = TemporalDisaggregationResultsDto
-                .newBuilder()
+    public static TemporalDisaggregationResultsDto toDto(
+            jdplus.benchmarking.base.core.univariate.TemporalDisaggregationResults value) {
+        TemporalDisaggregationResultsDto.Builder result = TemporalDisaggregationResultsDto.newBuilder()
                 .setOriginalSeries(TsDataMapping.toDto(value.getOriginalSeries()))
                 .setDisaggregationDomain(TsDomainMapping.toDto(value.getDisaggregationDomain()))
                 .setHyperParametersCount(value.getHyperParametersCount())
@@ -17,8 +16,7 @@ public class TemporalDisaggregationMapping {
                 .setStDevDisaggregatedSeries(TsDataMapping.toDto(value.getStdevDisaggregatedSeries()))
                 .setResidualsDiagnostics(ResidualsDiagnosticsMapping.toDto(value.getResidualsDiagnostics()));
 
-        if (value.getMaximum() != null)
-            result.setMaximum(ObjectiveFunctionPointMapping.toDto(value.getMaximum()));
+        if (value.getMaximum() != null) result.setMaximum(ObjectiveFunctionPointMapping.toDto(value.getMaximum()));
 
         if (value.getRegressionEffects() != null)
             result.setRegressionEffects(TsDataMapping.toDto(value.getRegressionEffects()));

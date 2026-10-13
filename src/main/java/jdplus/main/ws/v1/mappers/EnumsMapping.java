@@ -118,13 +118,13 @@ public class EnumsMapping {
     public static TradingDays toDto(TradingDaysType td) {
         return switch (td) {
             case TD7 -> TradingDays.TD7;
-//            case TD6 -> TradingDays.TD6;
-//            case TD4c -> TradingDays.TD4C;
+            //            case TD6 -> TradingDays.TD6;
+            //            case TD4c -> TradingDays.TD4C;
             case TD4 -> TradingDays.TD4;
             case TD3c -> TradingDays.TD3C;
             case TD3 -> TradingDays.TD3;
             case TD2c -> TradingDays.TD2C;
-//            case TD2d -> TradingDays.TD2D;
+            //            case TD2d -> TradingDays.TD2D;
             case TD2 -> TradingDays.TD2;
             default -> TradingDays.TD_NONE;
         };

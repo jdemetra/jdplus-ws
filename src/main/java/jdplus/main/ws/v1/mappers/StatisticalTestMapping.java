@@ -5,8 +5,7 @@ import jdplus.toolkit.base.api.stats.StatisticalTest;
 
 public class StatisticalTestMapping {
     public static StatisticalTestDto toDto(StatisticalTest value) {
-        StatisticalTestDto.Builder result = StatisticalTestDto
-                .newBuilder()
+        StatisticalTestDto.Builder result = StatisticalTestDto.newBuilder()
                 .setValue(value.getValue())
                 .setPValue(value.getPvalue())
                 .setDescription(value.getDescription());

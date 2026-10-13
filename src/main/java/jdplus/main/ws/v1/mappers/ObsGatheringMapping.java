@@ -5,8 +5,7 @@ import jdplus.toolkit.base.api.timeseries.util.ObsGathering;
 
 public class ObsGatheringMapping {
     public static ObsGatheringDto toDto(ObsGathering value) {
-        return ObsGatheringDto
-                .newBuilder()
+        return ObsGatheringDto.newBuilder()
                 .setFrequency(TsUnitMapping.toDto(value.getUnit()))
                 .setAggregationType(EnumsMapping.toDto(value.getAggregationType()))
                 .setAllowPartialAggregation(value.isAllowPartialAggregation())
@@ -15,8 +14,7 @@ public class ObsGatheringMapping {
     }
 
     public static ObsGathering toModel(ObsGatheringDto value) {
-        return ObsGathering
-                .builder()
+        return ObsGathering.builder()
                 .unit(EnumsMapping.toModel(value.getFrequency()))
                 .aggregationType(EnumsMapping.toModel(value.getAggregationType()))
                 .allowPartialAggregation(value.getAllowPartialAggregation())

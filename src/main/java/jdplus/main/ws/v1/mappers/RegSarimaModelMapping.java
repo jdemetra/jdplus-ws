@@ -1,5 +1,7 @@
 package jdplus.main.ws.v1.mappers;
 
+import static io.smallrye.openapi.model.DataType.type;
+
 import jdplus.main.ws.v1.*;
 import jdplus.toolkit.base.api.arima.SarimaSpec;
 import jdplus.toolkit.base.api.data.DoubleSeq;
@@ -12,8 +14,6 @@ import jdplus.toolkit.base.core.modelling.GeneralLinearModel;
 import jdplus.toolkit.base.core.regsarima.regular.RegSarimaModel;
 import jdplus.toolkit.base.core.stats.likelihood.LikelihoodStatistics;
 
-import static io.smallrye.openapi.model.DataType.type;
-
 public class RegSarimaModelMapping {
     public static RegArimaModelDto toDto(RegSarimaModel model) {
         if (model == null) {
@@ -23,18 +23,18 @@ public class RegSarimaModelMapping {
         DoubleSeq res = model.fullResiduals().getValues();
         return RegArimaModelDto.newBuilder()
                 .setDescription(toDto(model.getDescription()))
-                .setEstimation(toDto(model.getEstimation(),res))
+                .setEstimation(toDto(model.getEstimation(), res))
                 .setDiagnostics(toDiagnosticsDto(model))
                 .build();
     }
 
     public static DiagnosticsDto toDiagnosticsDto(GeneralLinearModel<SarimaSpec> model) {
         DiagnosticsDto.Builder builder = DiagnosticsDto.newBuilder();
-        model.getResiduals().getTests().forEach((k,v)->{
-            if(v instanceof StatisticalTest st){
-                if(st.isValid()){
+        model.getResiduals().getTests().forEach((k, v) -> {
+            if (v instanceof StatisticalTest st) {
+                if (st.isValid()) {
                     StatisticalTestDto test = StatisticalTestMapping.toDto(st);
-                    builder.putResidualsTests(k,test);
+                    builder.putResidualsTests(k, test);
                 }
             }
         });
@@ -123,4 +123,3 @@ public class RegSarimaModelMapping {
         return VariableType.VAR_UNSPECIFIED;
     }
 }
-

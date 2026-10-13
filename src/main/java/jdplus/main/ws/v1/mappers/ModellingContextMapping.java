@@ -1,11 +1,10 @@
 package jdplus.main.ws.v1.mappers;
 
+import java.util.Map;
 import jdplus.main.ws.v1.CalendarDefinitionDto;
 import jdplus.main.ws.v1.ModellingContextDto;
 import jdplus.main.ws.v1.TsDataSuppliersDto;
 import jdplus.toolkit.base.api.timeseries.regression.ModellingContext;
-
-import java.util.Map;
 
 public class ModellingContextMapping {
     public static ModellingContext toModel(ModellingContextDto dto) {

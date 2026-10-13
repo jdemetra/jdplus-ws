@@ -1,11 +1,10 @@
 package jdplus.main.ws.v1.mappers;
 
-import jdplus.main.ws.v1.ParameterDto;
-import jdplus.toolkit.base.api.data.Parameter;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import jdplus.main.ws.v1.ParameterDto;
+import jdplus.toolkit.base.api.data.Parameter;
 
 public class ParameterMapping {
     public static ParameterDto toDto(Parameter value) {
@@ -13,16 +12,13 @@ public class ParameterMapping {
             return ParameterDto.getDefaultInstance();
         }
 
-        ParameterDto.Builder result = ParameterDto
-                .newBuilder()
-                .setValue(value.getValue())
-                .setType(EnumsMapping.toDto(value.getType()));
+        ParameterDto.Builder result =
+                ParameterDto.newBuilder().setValue(value.getValue()).setType(EnumsMapping.toDto(value.getType()));
         return result.build();
     }
 
     public static ParameterDto toDto(Parameter value, String description) {
-        ParameterDto.Builder result = ParameterDto
-                .newBuilder()
+        ParameterDto.Builder result = ParameterDto.newBuilder()
                 .setValue(value.getValue())
                 .setType(EnumsMapping.toDto(value.getType()))
                 .setDescription(description);
@@ -58,10 +54,8 @@ public class ParameterMapping {
             Parameter[] np = new Parameter[n];
             for (int i = 0; i < n; ++i) {
                 Parameter c = toModel(p.get(i));
-                if (c == null)
-                    np[i]=Parameter.undefined();
-                else
-                    np[i]=c;
+                if (c == null) np[i] = Parameter.undefined();
+                else np[i] = c;
             }
             return np;
         }

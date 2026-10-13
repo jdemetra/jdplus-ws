@@ -1,23 +1,14 @@
 package jdplus.main.ws.v1.mappers;
 
-import jdplus.main.ws.v1.DateDto;
-
 import java.time.LocalDate;
+import jdplus.main.ws.v1.DateDto;
 
 public class LocalDateMapping {
     public static DateDto toDto(LocalDate ld) {
         if (ld.equals(LocalDate.MIN)) {
-            return DateDto.newBuilder()
-                    .setYear(1)
-                    .setMonth(1)
-                    .setDay(1)
-                    .build();
+            return DateDto.newBuilder().setYear(1).setMonth(1).setDay(1).build();
         } else if (ld.equals(LocalDate.MAX)) {
-            return DateDto.newBuilder()
-                    .setYear(9999)
-                    .setMonth(12)
-                    .setDay(31)
-                    .build();
+            return DateDto.newBuilder().setYear(9999).setMonth(12).setDay(31).build();
         } else {
             return DateDto.newBuilder()
                     .setYear(ld.getYear())
