@@ -136,17 +136,28 @@ class Helpers {
                 .build();
     }
 
-    static TsFunctionOutputDto buildTsData(BuildTsDataInputDto request) {
-        TsDataBuilder<LocalDate> builder = TsDataBuilder.byDate(ObsGatheringMapping.toModel(request.getGathering()));
-        request.getObservationsList()
-                .forEach(obs -> builder.add(LocalDateMapping.toModel(obs.getDate()), obs.getValue()));
-        TsData result = builder.build();
+    static BuildTsDataResultDto buildTsData(BuildTsDataInputDto request) {
+        try {
+            TsDataBuilder<LocalDate> builder =
+                    TsDataBuilder.byDate(ObsGatheringMapping.toModel(request.getGathering()));
+            request.getObservationsList()
+                    .forEach(obs -> builder.add(LocalDateMapping.toModel(obs.getDate()), obs.getValue()));
+            TsData result = builder.build();
 
-        return TsFunctionOutputDto.newBuilder()
-                .setId(request.getId())
-                .setStatus(result.isEmpty() ? ko(result.getEmptyCause()) : ok())
-                .setSeries(TsDataMapping.toDto(result))
-                .build();
+            return BuildTsDataResultDto.newBuilder()
+                    .setId(request.getId())
+                    .setOutput(TsFunctionOutputDto.newBuilder()
+                            .setId(request.getId())
+                            .setStatus(result.isEmpty() ? ko(result.getEmptyCause()) : ok())
+                            .setSeries(TsDataMapping.toDto(result))
+                            .build())
+                    .build();
+        } catch (Exception e) {
+            return BuildTsDataResultDto.newBuilder()
+                    .setError(ErrorDto.newBuilder().setMessage(e.getMessage()).build())
+                    .setId(request.getId())
+                    .build();
+        }
     }
 
     static BuildTsDataTableOutputDto buildTsDataTable(BuildTsDataTableInputDto request) {
@@ -284,25 +295,35 @@ class Helpers {
                 .build();
     }
 
-    public static TramoOutputDto tramoFullProcess(TramoRequestDto request) {
-        TsData series = TsDataMapping.toModel(request.getSeries());
-        TramoSpec spec = getSpecFromRequest(request);
-        TramoKernel kernel;
-        if (request.hasModellingContext()) {
-            kernel = TramoKernel.of(spec, ModellingContextMapping.toModel(request.getModellingContext()));
-        } else {
-            kernel = TramoKernel.of(spec, null);
-        }
-        RegSarimaModel estimation = kernel.process(series.cleanExtremities(), null);
-        TramoOutput tramoOutput = TramoOutput.builder()
-                .estimationSpec(spec)
-                .result(estimation)
-                .resultSpec(
-                        estimation == null
-                                ? null
-                                : TramoFactory.getInstance().generateSpec(spec, estimation.getDescription()))
-                .build();
+    public static TramoFullProcessResultDto tramoFullProcess(TramoRequestDto request) {
+        try {
+            TsData series = TsDataMapping.toModel(request.getSeries());
+            TramoSpec spec = getSpecFromRequest(request);
+            TramoKernel kernel;
+            if (request.hasModellingContext()) {
+                kernel = TramoKernel.of(spec, ModellingContextMapping.toModel(request.getModellingContext()));
+            } else {
+                kernel = TramoKernel.of(spec, null);
+            }
+            RegSarimaModel estimation = kernel.process(series.cleanExtremities(), null);
+            TramoOutput tramoOutput = TramoOutput.builder()
+                    .estimationSpec(spec)
+                    .result(estimation)
+                    .resultSpec(
+                            estimation == null
+                                    ? null
+                                    : TramoFactory.getInstance().generateSpec(spec, estimation.getDescription()))
+                    .build();
 
-        return TramoOutputMapping.toDto(tramoOutput, request.getId());
+            return TramoFullProcessResultDto.newBuilder()
+                    .setOutput(TramoOutputMapping.toDto(tramoOutput))
+                    .setId(request.getId())
+                    .build();
+        } catch (Exception e) {
+            return TramoFullProcessResultDto.newBuilder()
+                    .setError(ErrorDto.newBuilder().setMessage(e.getMessage()).build())
+                    .setId(request.getId())
+                    .build();
+        }
     }
 }

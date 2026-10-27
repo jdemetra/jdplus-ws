@@ -9,6 +9,10 @@ option csharp_namespace = "JDPlus.Main.WS.V1";
 
 message EmptyDto {}
 
+message ErrorDto {
+  string message = 1;
+}
+
 /* Frequency of an event. Only regular frequencies higher or equal to yearly frequency are considered. */
 enum Frequency {
   /* Undefined frequency. To be used when the frequency of an event is unknown. */
@@ -133,6 +137,15 @@ message ResultStatusDto {
 message TsFunctionInputDto {
   string id = 1;
   TsDataDto series = 2;
+}
+
+message BuildTsDataResultDto {
+  oneof result {
+    TsFunctionOutputDto output = 1;
+    ErrorDto error = 2;
+  }
+
+  string id = 42;
 }
 
 /* Default output of TsFunctions (no additional output) */
@@ -420,7 +433,7 @@ message TramoRequestDto {
   int32 n_forecasts = 3;
   optional ModellingContextDto modellingContext = 4;
 
-  string id = 10;
+  string id = 42;
 }
 
 
@@ -794,14 +807,21 @@ message FixedWeekDayDto {
   ValidityPeriodDto validity = 5;
 }
 
+message TramoFullProcessResultDto {
+  oneof result {
+    TramoOutputDto output = 1;
+    ErrorDto error = 2;
+  }
+
+  string id = 42;
+}
+
 message TramoOutputDto {
   RegArimaModelDto result = 1;
   TramoSpecDto estimation_spec = 2;
   optional TramoSpecDto result_spec = 3;
   optional ProcessingLogsDto log = 4;
   map<string, ProcessingDetailDto> details = 5;
-
-  string id = 10;
 }
 
 message DoublesDto {
