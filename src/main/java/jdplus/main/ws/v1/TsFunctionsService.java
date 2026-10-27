@@ -124,7 +124,7 @@ public class TsFunctionsService implements TsFunctions {
     @POST
     @Path("/buildTsData")
     @Override
-    public Uni<TsFunctionOutputDto> buildTsData(BuildTsDataInputDto request) {
+    public Uni<BuildTsDataResultDto> buildTsData(BuildTsDataInputDto request) {
         return Uni.createFrom().item(Helpers.buildTsData(request));
     }
 
@@ -159,7 +159,7 @@ public class TsFunctionsService implements TsFunctions {
     }
 
     @Override
-    public Multi<TsFunctionOutputDto> buildTsDataStream(Multi<BuildTsDataInputDto> request) {
+    public Multi<BuildTsDataResultDto> buildTsDataStream(Multi<BuildTsDataInputDto> request) {
         return request.onItem().transform(Helpers::buildTsData);
     }
 
@@ -214,7 +214,7 @@ public class TsFunctionsService implements TsFunctions {
     }
 
     @Override
-    public Uni<TramoOutputDto> tramoFullProcess(TramoRequestDto request) {
+    public Uni<TramoFullProcessResultDto> tramoFullProcess(TramoRequestDto request) {
         return Uni.createFrom().item(Helpers.tramoFullProcess(request));
     }
 }

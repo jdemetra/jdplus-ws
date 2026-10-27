@@ -30,8 +30,8 @@ service TsFunctions {
   rpc HodrickPrescott(HodrickPrescottInputDto) returns (HodrickPrescottOutputDto);
   rpc HodrickPrescottStream(stream HodrickPrescottInputDto) returns (stream HodrickPrescottOutputDto);
 
-  rpc BuildTsData(BuildTsDataInputDto) returns (TsFunctionOutputDto);
-  rpc BuildTsDataStream(stream BuildTsDataInputDto) returns (stream TsFunctionOutputDto);
+  rpc BuildTsData(BuildTsDataInputDto) returns (BuildTsDataResultDto);
+  rpc BuildTsDataStream(stream BuildTsDataInputDto) returns (stream BuildTsDataResultDto);
 
   rpc BuildTsDataTable(BuildTsDataTableInputDto) returns (BuildTsDataTableOutputDto);
 
@@ -40,7 +40,7 @@ service TsFunctions {
   rpc TramoForecast(TramoRequestDto) returns (TsMatrixDto);
   rpc TramoForecastStream(stream TramoRequestDto) returns (stream TsMatrixDto);
 
-  rpc TramoFullProcess(TramoRequestDto) returns (TramoOutputDto);
+  rpc TramoFullProcess(TramoRequestDto) returns (TramoFullProcessResultDto);
 
 
 

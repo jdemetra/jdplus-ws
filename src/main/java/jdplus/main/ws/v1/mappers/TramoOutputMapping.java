@@ -12,15 +12,10 @@ import jdplus.tramoseats.base.core.tramo.TramoOutput;
 public class TramoOutputMapping {
 
     public static TramoOutputDto toDto(TramoOutput model) {
-        return toDto(model, "");
-    }
-
-    public static TramoOutputDto toDto(TramoOutput model, String id) {
         System.out.print(model);
 
-        TramoOutputDto.Builder builder = TramoOutputDto.newBuilder()
-                .setEstimationSpec(SpecsMapping.toDto(model.getEstimationSpec()))
-                .setId(id);
+        TramoOutputDto.Builder builder =
+                TramoOutputDto.newBuilder().setEstimationSpec(SpecsMapping.toDto(model.getEstimationSpec()));
 
         if (model.getResult() != null) {
             builder.setResult(RegSarimaModelMapping.toDto(model.getResult()))
