@@ -33,10 +33,7 @@ public class TsFunctionsServiceTest {
 
         var output = TsFunctionResponseDto.newBuilder()
                 .setId("Example 1")
-                .setOk(TsFunctionOutputDto.newBuilder()
-                        .setSeries(TsDataMapping.toDto(TsData.of(yearly(2010), DoubleSeq.of(-1, 1))))
-                        .setStatus(Helpers.ok())
-                        .build())
+                .setOk(TsDataMapping.toDto(TsData.of(yearly(2010), DoubleSeq.of(-1, 1))))
                 .build();
 
         assertThat(grpc.normalize(input).await().atMost(Duration.ofSeconds(5))).isEqualTo(output);
@@ -59,7 +56,6 @@ public class TsFunctionsServiceTest {
                         .setQ25(1.75)
                         .setQ50(3.5)
                         .setQ75(5.25)
-                        .setStatus(Helpers.ok())
                         .build())
                 .build();
 
@@ -81,12 +77,9 @@ public class TsFunctionsServiceTest {
                         .build())
                 .build();
 
-        var output = TsFunctionResponseDto.newBuilder()
+        var output = BuildTsDataResponseDto.newBuilder()
                 .setId("Example 1")
-                .setOk(TsFunctionOutputDto.newBuilder()
-                        .setSeries(TsDataMapping.toDto(TsData.of(monthly(2010, 1), DoubleSeq.of(11, 22))))
-                        .setStatus(Helpers.ok())
-                        .build())
+                .setOk(TsDataMapping.toDto(TsData.of(monthly(2010, 1), DoubleSeq.of(11, 22))))
                 .build();
 
         assertThat(grpc.buildTsData(input).await().atMost(Duration.ofSeconds(5)))
@@ -104,13 +97,9 @@ public class TsFunctionsServiceTest {
                         .build())
                 .build();
 
-        var output = TsFunctionResponseDto.newBuilder()
+        var output = BuildTsDataResponseDto.newBuilder()
                 .setId("abc")
-                .setOk(TsFunctionOutputDto.newBuilder()
-                        .setSeries(
-                                TsDataMapping.toDto(TsData.empty("Cannot guess frequency with a single observation")))
-                        .setStatus(Helpers.ko("Cannot guess frequency with a single observation"))
-                        .build())
+                .setErr(Helpers.err("Cannot guess frequency with a single observation"))
                 .build();
 
         assertThat(grpc.buildTsData(input).await().atMost(Duration.ofSeconds(5)))

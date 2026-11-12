@@ -32,19 +32,12 @@ import jdplus.tramoseats.base.core.tramo.TramoKernel;
 import jdplus.tramoseats.base.core.tramo.TramoOutput;
 
 class Helpers {
-
-    static ResultStatusDto ok() {
-        return ResultStatusDto.newBuilder()
-                .setType(ResultStatusType.STATUS_OK)
-                .setMessage("")
-                .build();
+    static ErrorDto err(Exception exc) {
+        return err(exc.getMessage());
     }
 
-    static ResultStatusDto ko(String message) {
-        return ResultStatusDto.newBuilder()
-                .setType(ResultStatusType.STATUS_ERROR)
-                .setMessage(message)
-                .build();
+    static ErrorDto err(String message) {
+        return ErrorDto.newBuilder().setMessage(message).build();
     }
 
     static TsFunctionResponseDto normalize(TsFunctionRequestDto input) {
@@ -52,16 +45,10 @@ class Helpers {
                 TsFunctionResponseDto.newBuilder().setId(input.getId());
 
         try {
-            TsFunctionOutputDto result = TsFunctionOutputDto.newBuilder()
-                    .setStatus(ok())
-                    .setSeries(TsDataMapping.toDto(
-                            (input.hasSeries() ? TsDataMapping.toModel(input.getSeries()) : TsData.empty("?"))
-                                    .normalize()))
-                    .build();
-
-            builder.setOk(result);
+            builder.setOk(TsDataMapping.toDto(
+                    (input.hasSeries() ? TsDataMapping.toModel(input.getSeries()) : TsData.empty("?")).normalize()));
         } catch (Exception e) {
-            builder.setErr(ErrorDto.newBuilder().setMessage(e.getMessage()).build());
+            builder.setErr(err(e));
         }
 
         return builder.build();
@@ -77,7 +64,6 @@ class Helpers {
             double[] quantiles = value.quantiles(4);
 
             builder.setOk(DescriptiveStatisticsDto.newBuilder()
-                    .setStatus(ok())
                     .setN(value.getDataCount())
                     .setNmissing(value.getMissingValuesCount())
                     .setMax(value.getMax())
@@ -89,7 +75,7 @@ class Helpers {
                     .setQ75(quantiles[2])
                     .build());
         } catch (Exception e) {
-            builder.setErr(ErrorDto.newBuilder().setMessage(e.getMessage()).build());
+            builder.setErr(err(e));
         }
 
         return builder.build();
@@ -100,13 +86,10 @@ class Helpers {
                 TsFunctionResponseDto.newBuilder().setId(input.getId());
 
         try {
-            builder.setOk(TsFunctionOutputDto.newBuilder()
-                    .setStatus(ok())
-                    .setSeries(TsDataMapping.toDto(
-                            TsDataMapping.toModel(input.getSeries()).pctVariation(input.getLag())))
-                    .build());
+            builder.setOk(
+                    TsDataMapping.toDto(TsDataMapping.toModel(input.getSeries()).pctVariation(input.getLag())));
         } catch (Exception e) {
-            builder.setErr(ErrorDto.newBuilder().setMessage(e.getMessage()).build());
+            builder.setErr(err(e));
         }
 
         return builder.build();
@@ -117,13 +100,10 @@ class Helpers {
                 TsFunctionResponseDto.newBuilder().setId(input.getId());
 
         try {
-            builder.setOk(TsFunctionOutputDto.newBuilder()
-                    .setStatus(ok())
-                    .setSeries(TsDataMapping.toDto(
-                            TsDataMapping.toModel(input.getSeries()).delta(input.getLag(), input.getPower())))
-                    .build());
+            builder.setOk(TsDataMapping.toDto(
+                    TsDataMapping.toModel(input.getSeries()).delta(input.getLag(), input.getPower())));
         } catch (Exception e) {
-            builder.setErr(ErrorDto.newBuilder().setMessage(e.getMessage()).build());
+            builder.setErr(err(e));
         }
 
         return builder.build();
@@ -140,12 +120,10 @@ class Helpers {
                             EnumsMapping.toModel(input.getAggregationType()),
                             input.getComplete());
 
-            builder.setOk(TsFunctionOutputDto.newBuilder()
-                    .setStatus(ok())
-                    .setSeries(TsDataMapping.toDto(result))
-                    .build());
+            builder.setOk(TsDataMapping.toDto(result));
+
         } catch (Exception e) {
-            builder.setErr(ErrorDto.newBuilder().setMessage(e.getMessage()).build());
+            builder.setErr(err(e));
         }
 
         return builder.build();
@@ -178,12 +156,11 @@ class Helpers {
             TsData noise = TsData.of(s.getStart(), rslts.getComponent(pos[1]));
 
             builder.setOk(HodrickPrescottOutputDto.newBuilder()
-                    .setStatus(ok())
                     .setTrend(TsDataMapping.toDto(trend))
                     .setNoise(TsDataMapping.toDto(noise))
                     .build());
         } catch (Exception e) {
-            builder.setErr(ErrorDto.newBuilder().setMessage(e.getMessage()).build());
+            builder.setErr(err(e));
         }
 
         return builder.build();
@@ -194,19 +171,19 @@ class Helpers {
                 BuildTsDataResponseDto.newBuilder().setId(request.getId());
 
         try {
-            TsDataBuilder<LocalDate> builder =
+            TsDataBuilder<LocalDate> tsDataBuilder =
                     TsDataBuilder.byDate(ObsGatheringMapping.toModel(request.getGathering()));
             request.getObservationsList()
-                    .forEach(obs -> builder.add(LocalDateMapping.toModel(obs.getDate()), obs.getValue()));
-            TsData result = builder.build();
+                    .forEach(obs -> tsDataBuilder.add(LocalDateMapping.toModel(obs.getDate()), obs.getValue()));
+            TsData result = tsDataBuilder.build();
 
-            responseBuilder.setOk(TsFunctionOutputDto.newBuilder()
-                    .setStatus(result.isEmpty() ? ko(result.getEmptyCause()) : ok())
-                    .setSeries(TsDataMapping.toDto(result))
-                    .build());
+            if (result.isEmpty()) {
+                responseBuilder.setErr(err(result.getEmptyCause()));
+            } else {
+                responseBuilder.setOk(TsDataMapping.toDto(result));
+            }
         } catch (Exception e) {
-            responseBuilder.setErr(
-                    ErrorDto.newBuilder().setMessage(e.getMessage()).build());
+            responseBuilder.setErr(err(e));
         }
 
         return responseBuilder.build();
@@ -243,7 +220,7 @@ class Helpers {
                     .addAllStatuses(Arrays.asList(buffer))
                     .build());
         } catch (Exception e) {
-            builder.setErr(ErrorDto.newBuilder().setMessage(e.getMessage()).build());
+            builder.setErr(err(e));
         }
 
         return builder.build();
@@ -319,7 +296,7 @@ class Helpers {
             }
 
         } catch (Exception e) {
-            builder.setErr(ErrorDto.newBuilder().setMessage(e.getMessage()).build());
+            builder.setErr(err(e));
         }
 
         return builder.build();
@@ -367,7 +344,7 @@ class Helpers {
                     .setValues(MatrixMapping.toDto(R))
                     .build());
         } catch (Exception e) {
-            builder.setErr(ErrorDto.newBuilder().setMessage(e.getMessage()).build());
+            builder.setErr(err(e));
         }
 
         return builder.build();
@@ -398,7 +375,7 @@ class Helpers {
 
             builder.setOk(TramoOutputMapping.toDto(tramoOutput));
         } catch (Exception e) {
-            builder.setErr(ErrorDto.newBuilder().setMessage(e.getMessage()).build());
+            builder.setErr(err(e));
         }
 
         return builder.build();
