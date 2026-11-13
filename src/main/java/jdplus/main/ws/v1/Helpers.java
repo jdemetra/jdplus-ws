@@ -32,216 +32,274 @@ import jdplus.tramoseats.base.core.tramo.TramoKernel;
 import jdplus.tramoseats.base.core.tramo.TramoOutput;
 
 class Helpers {
-
-    static ResultStatusDto ok() {
-        return ResultStatusDto.newBuilder()
-                .setType(ResultStatusType.STATUS_OK)
-                .setMessage("")
-                .build();
+    static ErrorDto err(Exception exc) {
+        return err(exc.getMessage());
     }
 
-    static ResultStatusDto ko(String message) {
-        return ResultStatusDto.newBuilder()
-                .setType(ResultStatusType.STATUS_ERROR)
-                .setMessage(message)
-                .build();
+    static ErrorDto err(String message) {
+        return ErrorDto.newBuilder().setMessage(message).build();
     }
 
-    static TsFunctionOutputDto normalize(TsFunctionInputDto input) {
-        return TsFunctionOutputDto.newBuilder()
-                .setId(input.getId())
-                .setStatus(ok())
-                .setSeries(TsDataMapping.toDto(
-                        (input.hasSeries() ? TsDataMapping.toModel(input.getSeries()) : TsData.empty("?")).normalize()))
-                .build();
-    }
+    static TsFunctionResponseDto normalize(TsFunctionRequestDto input) {
+        TsFunctionResponseDto.Builder builder =
+                TsFunctionResponseDto.newBuilder().setId(input.getId());
 
-    static DescriptiveStatisticsDto statistics(TsFunctionInputDto input) {
-        DescriptiveStatistics value = DescriptiveStatistics.of(
-                TsDataMapping.toModel(input.getSeries()).getValues());
-        double[] quantiles = value.quantiles(4);
-        return DescriptiveStatisticsDto.newBuilder()
-                .setId(input.getId())
-                .setStatus(ok())
-                .setN(value.getDataCount())
-                .setNmissing(value.getMissingValuesCount())
-                .setMax(value.getMax())
-                .setMin(value.getMin())
-                .setAverage(value.getAverage())
-                .setStdev(value.getStdev())
-                .setQ25(quantiles[0])
-                .setQ50(quantiles[1])
-                .setQ75(quantiles[2])
-                .build();
-    }
-
-    static TsFunctionOutputDto pct(PctInputDto input) {
-        return TsFunctionOutputDto.newBuilder()
-                .setId(input.getId())
-                .setStatus(ok())
-                .setSeries(TsDataMapping.toDto(
-                        TsDataMapping.toModel(input.getSeries()).pctVariation(input.getLag())))
-                .build();
-    }
-
-    static TsFunctionOutputDto delta(DeltaInputDto input) {
-        return TsFunctionOutputDto.newBuilder()
-                .setId(input.getId())
-                .setStatus(ok())
-                .setSeries(TsDataMapping.toDto(
-                        TsDataMapping.toModel(input.getSeries()).delta(input.getLag(), input.getPower())))
-                .build();
-    }
-
-    static TsFunctionOutputDto aggregate(AggregationInputDto input) {
-        TsData result = TsDataMapping.toModel(input.getSeries())
-                .aggregate(
-                        EnumsMapping.toModel(input.getNewFrequency()),
-                        EnumsMapping.toModel(input.getAggregationType()),
-                        input.getComplete());
-        return TsFunctionOutputDto.newBuilder()
-                .setId(input.getId())
-                .setStatus(ok())
-                .setSeries(TsDataMapping.toDto(result))
-                .build();
-    }
-
-    static HodrickPrescottOutputDto hodrickPrescott(HodrickPrescottInputDto input) {
-        TsData s = TsDataMapping.toModel(input.getSeries());
-
-        ArimaModel rw2 = new ArimaModel(BackFilter.ONE, BackFilter.ofInternal(1, -2, 1), BackFilter.ONE, 1);
-        StateComponent signal = SsfArima.stateComponent(rw2);
-        StateComponent n = Noise.of(input.getLambda());
-
-        // create a composite state space form
-        CompositeSsf ssf = CompositeSsf.builder()
-                .add(signal, SsfArima.defaultLoading())
-                .add(n, Noise.defaultLoading())
-                .build();
-
-        // smoothing using Durbin-Koopman for diffuse initialization
-        // and with the specified variances (not estimated)
-        SsfData data = new SsfData(s.getValues());
-        DefaultSmoothingResults rslts = DkToolkit.sqrtSmooth(ssf, data, true, true);
-        int[] pos = ssf.componentsPosition();
-
-        TsData trend = TsData.of(s.getStart(), rslts.getComponent(pos[0]));
-        TsData noise = TsData.of(s.getStart(), rslts.getComponent(pos[1]));
-
-        return HodrickPrescottOutputDto.newBuilder()
-                .setId(input.getId())
-                .setStatus(ok())
-                .setTrend(TsDataMapping.toDto(trend))
-                .setNoise(TsDataMapping.toDto(noise))
-                .build();
-    }
-
-    static TsFunctionOutputDto buildTsData(BuildTsDataInputDto request) {
-        TsDataBuilder<LocalDate> builder = TsDataBuilder.byDate(ObsGatheringMapping.toModel(request.getGathering()));
-        request.getObservationsList()
-                .forEach(obs -> builder.add(LocalDateMapping.toModel(obs.getDate()), obs.getValue()));
-        TsData result = builder.build();
-
-        return TsFunctionOutputDto.newBuilder()
-                .setId(request.getId())
-                .setStatus(result.isEmpty() ? ko(result.getEmptyCause()) : ok())
-                .setSeries(TsDataMapping.toDto(result))
-                .build();
-    }
-
-    static BuildTsDataTableOutputDto buildTsDataTable(BuildTsDataTableInputDto request) {
-        TsDataTable result = TsDataTable.of(request.getCollectionList(), TsDataMapping::toModel);
-
-        TsDataTable.Cursor cursor = result.cursor(EnumsMapping.toModel(request.getDistributionType()));
-        Matrix.Mutable matrix = Matrix.Mutable.make(cursor.getPeriodCount(), cursor.getSeriesCount());
-        Table<ValueStatus> statuses = new Table<>(cursor.getPeriodCount(), cursor.getSeriesCount());
-        for (int i = 0; i < cursor.getPeriodCount(); i++) {
-            for (int j = 0; j < cursor.getSeriesCount(); j++) {
-                cursor.moveTo(i, j);
-                statuses.set(i, j, EnumsMapping.toDto(cursor.getStatus()));
-                matrix.set(i, j, cursor.getValue());
-            }
+        try {
+            builder.setOk(TsDataMapping.toDto(
+                    (input.hasSeries() ? TsDataMapping.toModel(input.getSeries()) : TsData.empty("?")).normalize()));
+        } catch (Exception e) {
+            builder.setErr(err(e));
         }
 
-        TsMatrixDto tsMatrix = TsMatrixDto.newBuilder()
-                .setStart(TsPeriodMapping.toDto(result.getDomain().getStartPeriod()))
-                .setValues(MatrixMapping.toDto(matrix))
-                .build();
-
-        ValueStatus[] buffer = new ValueStatus[statuses.getRowsCount() * statuses.getColumnsCount()];
-        statuses.copyTo(buffer);
-
-        return BuildTsDataTableOutputDto.newBuilder()
-                .setId(request.getId())
-                .setMatrix(tsMatrix)
-                .addAllStatuses(Arrays.asList(buffer))
-                .build();
+        return builder.build();
     }
 
-    static TemporalDisaggregationResultsDto processTemporalDisaggregation(TemporalDisaggregationRequestDto request) {
-        TsData y = TsDataMapping.toModel(request.getY());
-        TsData[] indicators =
-                request.getIndicatorsList().stream().map(TsDataMapping::toModel).toArray(TsData[]::new);
-        boolean constant = request.getConstant();
-        boolean trend = request.getTrend();
-        String model = request.getModel();
-        boolean average = request.getAverage();
-        double rho = request.getRho();
-        boolean fixedRho = request.getFixedRho();
-        double truncatedRho = request.getTruncatedRho();
-        boolean zeroInit = request.getZeroInit();
-        String algorithm = request.getAlgorithm();
-        boolean diffuserEgs = request.getDiffuserEgs();
-        int nbackcasts = request.hasNBackcasts() ? request.getNBackcasts() : 0;
-        int nforecasts = request.hasNForecasts() ? request.getNForecasts() : 0;
-        int frequency = request.hasFrequency() ? request.getFrequency() : 12;
+    static DescriptiveStatisticsResponseDto statistics(TsFunctionRequestDto input) {
+        DescriptiveStatisticsResponseDto.Builder builder =
+                DescriptiveStatisticsResponseDto.newBuilder().setId(input.getId());
 
-        ModelSpec mspec = ModelSpec.builder()
-                .constant(constant)
-                .trend(trend)
-                .residualsModel(ResidualsModel.valueOf(model))
-                .parameter(fixedRho ? Parameter.fixed(rho) : Parameter.initial(rho))
-                .diffuseRegressors(diffuserEgs)
-                .zeroInitialization(zeroInit)
-                .build();
+        try {
+            DescriptiveStatistics value = DescriptiveStatistics.of(
+                    TsDataMapping.toModel(input.getSeries()).getValues());
+            double[] quantiles = value.quantiles(4);
 
-        TsEstimationSpec espec = TsEstimationSpec.builder()
-                .truncatedParameter(truncatedRho <= -1 ? null : truncatedRho)
-                .build();
-
-        AlgorithmSpec aspec = AlgorithmSpec.builder()
-                .algorithm(SsfInitialization.valueOf(algorithm))
-                .rescale(true)
-                .build();
-
-        if (indicators.length > 0) {
-            TemporalDisaggregationSpec spec = TemporalDisaggregationSpec.builder()
-                    .modelSpec(mspec)
-                    .estimationSpec(espec)
-                    .algorithmSpec(aspec)
-                    .average(average)
-                    .build();
-
-            for (int i = 0; i < indicators.length; ++i) {
-                indicators[i] = indicators[i].cleanExtremities();
-            }
-            TemporalDisaggregationResults results = TemporalDisaggregationProcessor.process(y, indicators, spec);
-            return TemporalDisaggregationMapping.toDto(results);
-
-        } else {
-            TemporalDisaggregationSpec spec = TemporalDisaggregationSpec.builder()
-                    .modelSpec(mspec)
-                    .estimationSpec(espec)
-                    .algorithmSpec(aspec)
-                    .average(average)
-                    .defaultPeriod(frequency)
-                    .build();
-
-            TemporalDisaggregationResults results =
-                    TemporalDisaggregationProcessor.process(y, nbackcasts, nforecasts, spec);
-
-            return TemporalDisaggregationMapping.toDto(results);
+            builder.setOk(DescriptiveStatisticsDto.newBuilder()
+                    .setN(value.getDataCount())
+                    .setNmissing(value.getMissingValuesCount())
+                    .setMax(value.getMax())
+                    .setMin(value.getMin())
+                    .setAverage(value.getAverage())
+                    .setStdev(value.getStdev())
+                    .setQ25(quantiles[0])
+                    .setQ50(quantiles[1])
+                    .setQ75(quantiles[2])
+                    .build());
+        } catch (Exception e) {
+            builder.setErr(err(e));
         }
+
+        return builder.build();
+    }
+
+    static TsFunctionResponseDto pct(PctRequestDto input) {
+        TsFunctionResponseDto.Builder builder =
+                TsFunctionResponseDto.newBuilder().setId(input.getId());
+
+        try {
+            builder.setOk(
+                    TsDataMapping.toDto(TsDataMapping.toModel(input.getSeries()).pctVariation(input.getLag())));
+        } catch (Exception e) {
+            builder.setErr(err(e));
+        }
+
+        return builder.build();
+    }
+
+    static TsFunctionResponseDto delta(DeltaRequestDto input) {
+        TsFunctionResponseDto.Builder builder =
+                TsFunctionResponseDto.newBuilder().setId(input.getId());
+
+        try {
+            builder.setOk(TsDataMapping.toDto(
+                    TsDataMapping.toModel(input.getSeries()).delta(input.getLag(), input.getPower())));
+        } catch (Exception e) {
+            builder.setErr(err(e));
+        }
+
+        return builder.build();
+    }
+
+    static TsFunctionResponseDto aggregate(AggregationRequestDto input) {
+        TsFunctionResponseDto.Builder builder =
+                TsFunctionResponseDto.newBuilder().setId(input.getId());
+
+        try {
+            TsData result = TsDataMapping.toModel(input.getSeries())
+                    .aggregate(
+                            EnumsMapping.toModel(input.getNewFrequency()),
+                            EnumsMapping.toModel(input.getAggregationType()),
+                            input.getComplete());
+
+            builder.setOk(TsDataMapping.toDto(result));
+
+        } catch (Exception e) {
+            builder.setErr(err(e));
+        }
+
+        return builder.build();
+    }
+
+    static HodrickPrescottResponseDto hodrickPrescott(HodrickPrescottRequestDto input) {
+        HodrickPrescottResponseDto.Builder builder =
+                HodrickPrescottResponseDto.newBuilder().setId(input.getId());
+
+        try {
+            TsData s = TsDataMapping.toModel(input.getSeries());
+
+            ArimaModel rw2 = new ArimaModel(BackFilter.ONE, BackFilter.ofInternal(1, -2, 1), BackFilter.ONE, 1);
+            StateComponent signal = SsfArima.stateComponent(rw2);
+            StateComponent n = Noise.of(input.getLambda());
+
+            // create a composite state space form
+            CompositeSsf ssf = CompositeSsf.builder()
+                    .add(signal, SsfArima.defaultLoading())
+                    .add(n, Noise.defaultLoading())
+                    .build();
+
+            // smoothing using Durbin-Koopman for diffuse initialization
+            // and with the specified variances (not estimated)
+            SsfData data = new SsfData(s.getValues());
+            DefaultSmoothingResults rslts = DkToolkit.sqrtSmooth(ssf, data, true, true);
+            int[] pos = ssf.componentsPosition();
+
+            TsData trend = TsData.of(s.getStart(), rslts.getComponent(pos[0]));
+            TsData noise = TsData.of(s.getStart(), rslts.getComponent(pos[1]));
+
+            builder.setOk(HodrickPrescottOutputDto.newBuilder()
+                    .setTrend(TsDataMapping.toDto(trend))
+                    .setNoise(TsDataMapping.toDto(noise))
+                    .build());
+        } catch (Exception e) {
+            builder.setErr(err(e));
+        }
+
+        return builder.build();
+    }
+
+    static BuildTsDataResponseDto buildTsData(BuildTsDataRequestDto request) {
+        BuildTsDataResponseDto.Builder responseBuilder =
+                BuildTsDataResponseDto.newBuilder().setId(request.getId());
+
+        try {
+            TsDataBuilder<LocalDate> tsDataBuilder =
+                    TsDataBuilder.byDate(ObsGatheringMapping.toModel(request.getGathering()));
+            request.getObservationsList()
+                    .forEach(obs -> tsDataBuilder.add(LocalDateMapping.toModel(obs.getDate()), obs.getValue()));
+            TsData result = tsDataBuilder.build();
+
+            if (result.isEmpty()) {
+                responseBuilder.setErr(err(result.getEmptyCause()));
+            } else {
+                responseBuilder.setOk(TsDataMapping.toDto(result));
+            }
+        } catch (Exception e) {
+            responseBuilder.setErr(err(e));
+        }
+
+        return responseBuilder.build();
+    }
+
+    static BuildTsDataTableResponseDto buildTsDataTable(BuildTsDataTableRequestDto request) {
+        BuildTsDataTableResponseDto.Builder builder =
+                BuildTsDataTableResponseDto.newBuilder().setId(request.getId());
+
+        try {
+            TsDataTable result = TsDataTable.of(request.getCollectionList(), TsDataMapping::toModel);
+
+            TsDataTable.Cursor cursor = result.cursor(EnumsMapping.toModel(request.getDistributionType()));
+            Matrix.Mutable matrix = Matrix.Mutable.make(cursor.getPeriodCount(), cursor.getSeriesCount());
+            Table<ValueStatus> statuses = new Table<>(cursor.getPeriodCount(), cursor.getSeriesCount());
+            for (int i = 0; i < cursor.getPeriodCount(); i++) {
+                for (int j = 0; j < cursor.getSeriesCount(); j++) {
+                    cursor.moveTo(i, j);
+                    statuses.set(i, j, EnumsMapping.toDto(cursor.getStatus()));
+                    matrix.set(i, j, cursor.getValue());
+                }
+            }
+
+            TsMatrixDto tsMatrix = TsMatrixDto.newBuilder()
+                    .setStart(TsPeriodMapping.toDto(result.getDomain().getStartPeriod()))
+                    .setValues(MatrixMapping.toDto(matrix))
+                    .build();
+
+            ValueStatus[] buffer = new ValueStatus[statuses.getRowsCount() * statuses.getColumnsCount()];
+            statuses.copyTo(buffer);
+
+            builder.setOk(BuildTsDataTableOutputDto.newBuilder()
+                    .setMatrix(tsMatrix)
+                    .addAllStatuses(Arrays.asList(buffer))
+                    .build());
+        } catch (Exception e) {
+            builder.setErr(err(e));
+        }
+
+        return builder.build();
+    }
+
+    static TemporalDisaggregationResponseDto processTemporalDisaggregation(TemporalDisaggregationRequestDto request) {
+        TemporalDisaggregationResponseDto.Builder builder =
+                TemporalDisaggregationResponseDto.newBuilder().setId(request.getId());
+
+        try {
+            TsData y = TsDataMapping.toModel(request.getY());
+            TsData[] indicators = request.getIndicatorsList().stream()
+                    .map(TsDataMapping::toModel)
+                    .toArray(TsData[]::new);
+            boolean constant = request.getConstant();
+            boolean trend = request.getTrend();
+            String model = request.getModel();
+            boolean average = request.getAverage();
+            double rho = request.getRho();
+            boolean fixedRho = request.getFixedRho();
+            double truncatedRho = request.getTruncatedRho();
+            boolean zeroInit = request.getZeroInit();
+            String algorithm = request.getAlgorithm();
+            boolean diffuserEgs = request.getDiffuserEgs();
+            int nbackcasts = request.hasNBackcasts() ? request.getNBackcasts() : 0;
+            int nforecasts = request.hasNForecasts() ? request.getNForecasts() : 0;
+            int frequency = request.hasFrequency() ? request.getFrequency() : 12;
+
+            ModelSpec mspec = ModelSpec.builder()
+                    .constant(constant)
+                    .trend(trend)
+                    .residualsModel(ResidualsModel.valueOf(model))
+                    .parameter(fixedRho ? Parameter.fixed(rho) : Parameter.initial(rho))
+                    .diffuseRegressors(diffuserEgs)
+                    .zeroInitialization(zeroInit)
+                    .build();
+
+            TsEstimationSpec espec = TsEstimationSpec.builder()
+                    .truncatedParameter(truncatedRho <= -1 ? null : truncatedRho)
+                    .build();
+
+            AlgorithmSpec aspec = AlgorithmSpec.builder()
+                    .algorithm(SsfInitialization.valueOf(algorithm))
+                    .rescale(true)
+                    .build();
+
+            if (indicators.length > 0) {
+                TemporalDisaggregationSpec spec = TemporalDisaggregationSpec.builder()
+                        .modelSpec(mspec)
+                        .estimationSpec(espec)
+                        .algorithmSpec(aspec)
+                        .average(average)
+                        .build();
+
+                for (int i = 0; i < indicators.length; ++i) {
+                    indicators[i] = indicators[i].cleanExtremities();
+                }
+                TemporalDisaggregationResults results = TemporalDisaggregationProcessor.process(y, indicators, spec);
+                builder.setOk(TemporalDisaggregationMapping.toDto(results));
+            } else {
+                TemporalDisaggregationSpec spec = TemporalDisaggregationSpec.builder()
+                        .modelSpec(mspec)
+                        .estimationSpec(espec)
+                        .algorithmSpec(aspec)
+                        .average(average)
+                        .defaultPeriod(frequency)
+                        .build();
+
+                TemporalDisaggregationResults results =
+                        TemporalDisaggregationProcessor.process(y, nbackcasts, nforecasts, spec);
+
+                builder.setOk(TemporalDisaggregationMapping.toDto(results));
+            }
+
+        } catch (Exception e) {
+            builder.setErr(err(e));
+        }
+
+        return builder.build();
     }
 
     /**
@@ -255,54 +313,71 @@ class Helpers {
         };
     }
 
-    public static TsMatrixDto tramoForecast(TramoRequestDto request) {
-        TsData series = TsDataMapping.toModel(request.getSeries());
-        int nForecasts = request.getNForecasts();
-        TramoSpec spec = getSpecFromRequest(request);
-        TramoKernel kernel;
-        if (request.hasModellingContext()) {
-            kernel = TramoKernel.of(spec, ModellingContextMapping.toModel(request.getModellingContext()));
-        } else {
-            kernel = TramoKernel.of(spec, null);
+    public static TramoForecastResponseDto tramoForecast(TramoRequestDto request) {
+        TramoForecastResponseDto.Builder builder =
+                TramoForecastResponseDto.newBuilder().setId(request.getId());
+
+        try {
+            TsData series = TsDataMapping.toModel(request.getSeries());
+            int nForecasts = request.getNForecasts();
+            TramoSpec spec = getSpecFromRequest(request);
+            TramoKernel kernel;
+            if (request.hasModellingContext()) {
+                kernel = TramoKernel.of(spec, ModellingContextMapping.toModel(request.getModellingContext()));
+            } else {
+                kernel = TramoKernel.of(spec, null);
+            }
+
+            Forecast f = new Forecast(kernel, nForecasts);
+            if (!f.process(series.cleanExtremities())) {
+                throw new RuntimeException("Tramo forecast processing failed");
+            }
+
+            FastMatrix R = FastMatrix.make(nForecasts, 4);
+            R.column(0).copy(f.getForecasts());
+            R.column(1).copy(f.getForecastsStdev());
+            R.column(2).copy(f.getRawForecasts());
+            R.column(3).copy(f.getRawForecastsStdev());
+
+            builder.setOk(TsMatrixDto.newBuilder()
+                    .setStart(TsPeriodMapping.toDto(series.getEnd()))
+                    .setValues(MatrixMapping.toDto(R))
+                    .build());
+        } catch (Exception e) {
+            builder.setErr(err(e));
         }
 
-        Forecast f = new Forecast(kernel, nForecasts);
-        if (!f.process(series.cleanExtremities())) {
-            throw new RuntimeException("Tramo forecast processing failed");
-        }
-
-        FastMatrix R = FastMatrix.make(nForecasts, 4);
-        R.column(0).copy(f.getForecasts());
-        R.column(1).copy(f.getForecastsStdev());
-        R.column(2).copy(f.getRawForecasts());
-        R.column(3).copy(f.getRawForecastsStdev());
-
-        return TsMatrixDto.newBuilder()
-                .setStart(TsPeriodMapping.toDto(series.getEnd()))
-                .setValues(MatrixMapping.toDto(R))
-                .setId(request.getId())
-                .build();
+        return builder.build();
     }
 
-    public static TramoOutputDto tramoFullProcess(TramoRequestDto request) {
-        TsData series = TsDataMapping.toModel(request.getSeries());
-        TramoSpec spec = getSpecFromRequest(request);
-        TramoKernel kernel;
-        if (request.hasModellingContext()) {
-            kernel = TramoKernel.of(spec, ModellingContextMapping.toModel(request.getModellingContext()));
-        } else {
-            kernel = TramoKernel.of(spec, null);
-        }
-        RegSarimaModel estimation = kernel.process(series.cleanExtremities(), null);
-        TramoOutput tramoOutput = TramoOutput.builder()
-                .estimationSpec(spec)
-                .result(estimation)
-                .resultSpec(
-                        estimation == null
-                                ? null
-                                : TramoFactory.getInstance().generateSpec(spec, estimation.getDescription()))
-                .build();
+    public static TramoFullProcessResponseDto tramoFullProcess(TramoRequestDto request) {
+        TramoFullProcessResponseDto.Builder builder =
+                TramoFullProcessResponseDto.newBuilder().setId(request.getId());
 
-        return TramoOutputMapping.toDto(tramoOutput, request.getId());
+        try {
+            TsData series = TsDataMapping.toModel(request.getSeries());
+            TramoSpec spec = getSpecFromRequest(request);
+            TramoKernel kernel;
+            if (request.hasModellingContext()) {
+                kernel = TramoKernel.of(spec, ModellingContextMapping.toModel(request.getModellingContext()));
+            } else {
+                kernel = TramoKernel.of(spec, null);
+            }
+            RegSarimaModel estimation = kernel.process(series.cleanExtremities(), null);
+            TramoOutput tramoOutput = TramoOutput.builder()
+                    .estimationSpec(spec)
+                    .result(estimation)
+                    .resultSpec(
+                            estimation == null
+                                    ? null
+                                    : TramoFactory.getInstance().generateSpec(spec, estimation.getDescription()))
+                    .build();
+
+            builder.setOk(TramoOutputMapping.toDto(tramoOutput));
+        } catch (Exception e) {
+            builder.setErr(err(e));
+        }
+
+        return builder.build();
     }
 }

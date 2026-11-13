@@ -11,36 +11,36 @@ service TsFunctions {
   rpc GetVersion(EmptyDto) returns (VersionInfoDto);
 
   /* Compute (y-mean(y))/stdev(y) */
-  rpc Normalize(TsFunctionInputDto) returns (TsFunctionOutputDto);
-  rpc NormalizeStream(stream TsFunctionInputDto) returns (stream TsFunctionOutputDto);
+  rpc Normalize(TsFunctionRequestDto) returns (TsFunctionResponseDto);
+  rpc NormalizeStream(stream TsFunctionRequestDto) returns (stream TsFunctionResponseDto);
 
   /* Basic descriptive statistics */
-  rpc Statistics(TsFunctionInputDto) returns (DescriptiveStatisticsDto);
-  rpc StatisticsStream(stream TsFunctionInputDto) returns (stream DescriptiveStatisticsDto);
+  rpc Statistics(TsFunctionRequestDto) returns (DescriptiveStatisticsResponseDto);
+  rpc StatisticsStream(stream TsFunctionRequestDto) returns (stream DescriptiveStatisticsResponseDto);
 
-  rpc Pct(PctInputDto) returns (TsFunctionOutputDto);
-  rpc PctStream(stream PctInputDto) returns (stream TsFunctionOutputDto);
+  rpc Pct(PctRequestDto) returns (TsFunctionResponseDto);
+  rpc PctStream(stream PctRequestDto) returns (stream TsFunctionResponseDto);
 
-  rpc Delta(DeltaInputDto) returns (TsFunctionOutputDto);
-  rpc DeltaStream(stream DeltaInputDto) returns (stream TsFunctionOutputDto);
+  rpc Delta(DeltaRequestDto) returns (TsFunctionResponseDto);
+  rpc DeltaStream(stream DeltaRequestDto) returns (stream TsFunctionResponseDto);
 
-  rpc Aggregate(AggregationInputDto) returns (TsFunctionOutputDto);
-  rpc AggregateStream(stream AggregationInputDto) returns (stream TsFunctionOutputDto);
+  rpc Aggregate(AggregationRequestDto) returns (TsFunctionResponseDto);
+  rpc AggregateStream(stream AggregationRequestDto) returns (stream TsFunctionResponseDto);
 
-  rpc HodrickPrescott(HodrickPrescottInputDto) returns (HodrickPrescottOutputDto);
-  rpc HodrickPrescottStream(stream HodrickPrescottInputDto) returns (stream HodrickPrescottOutputDto);
+  rpc HodrickPrescott(HodrickPrescottRequestDto) returns (HodrickPrescottResponseDto);
+  rpc HodrickPrescottStream(stream HodrickPrescottRequestDto) returns (stream HodrickPrescottResponseDto);
 
-  rpc BuildTsData(BuildTsDataInputDto) returns (TsFunctionOutputDto);
-  rpc BuildTsDataStream(stream BuildTsDataInputDto) returns (stream TsFunctionOutputDto);
+  rpc BuildTsData(BuildTsDataRequestDto) returns (BuildTsDataResponseDto);
+  rpc BuildTsDataStream(stream BuildTsDataRequestDto) returns (stream BuildTsDataResponseDto);
 
-  rpc BuildTsDataTable(BuildTsDataTableInputDto) returns (BuildTsDataTableOutputDto);
+  rpc BuildTsDataTable(BuildTsDataTableRequestDto) returns (BuildTsDataTableResponseDto);
 
-  rpc ProcessTemporalDisaggregation(TemporalDisaggregationRequestDto) returns (TemporalDisaggregationResultsDto);
+  rpc ProcessTemporalDisaggregation(TemporalDisaggregationRequestDto) returns (TemporalDisaggregationResponseDto);
 
-  rpc TramoForecast(TramoRequestDto) returns (TsMatrixDto);
-  rpc TramoForecastStream(stream TramoRequestDto) returns (stream TsMatrixDto);
+  rpc TramoForecast(TramoRequestDto) returns (TramoForecastResponseDto);
+  rpc TramoForecastStream(stream TramoRequestDto) returns (stream TramoForecastResponseDto);
 
-  rpc TramoFullProcess(TramoRequestDto) returns (TramoOutputDto);
+  rpc TramoFullProcess(TramoRequestDto) returns (TramoFullProcessResponseDto);
 
 
 

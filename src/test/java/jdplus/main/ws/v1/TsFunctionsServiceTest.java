@@ -26,15 +26,14 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testNormalize() {
-        var input = TsFunctionInputDto.newBuilder()
+        var input = TsFunctionRequestDto.newBuilder()
                 .setId("Example 1")
                 .setSeries(TsDataMapping.toDto(TsData.of(yearly(2010), DoubleSeq.of(3, 4))))
                 .build();
 
-        var output = TsFunctionOutputDto.newBuilder()
+        var output = TsFunctionResponseDto.newBuilder()
                 .setId("Example 1")
-                .setSeries(TsDataMapping.toDto(TsData.of(yearly(2010), DoubleSeq.of(-1, 1))))
-                .setStatus(Helpers.ok())
+                .setOk(TsDataMapping.toDto(TsData.of(yearly(2010), DoubleSeq.of(-1, 1))))
                 .build();
 
         assertThat(grpc.normalize(input).await().atMost(Duration.ofSeconds(5))).isEqualTo(output);
@@ -42,21 +41,22 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testStatistics() {
-        var input = TsFunctionInputDto.newBuilder()
+        var input = TsFunctionRequestDto.newBuilder()
                 .setId("Example 1")
                 .setSeries(TsDataMapping.toDto(TsData.of(yearly(2010), DoubleSeq.of(0, 1, 2, 3, 4, 5, 6, 7))))
                 .build();
 
-        var output = DescriptiveStatisticsDto.newBuilder()
+        var output = DescriptiveStatisticsResponseDto.newBuilder()
                 .setId("Example 1")
-                .setN(8)
-                .setMax(7)
-                .setAverage(3.5)
-                .setStdev(2.29128784747792)
-                .setQ25(1.75)
-                .setQ50(3.5)
-                .setQ75(5.25)
-                .setStatus(Helpers.ok())
+                .setOk(DescriptiveStatisticsDto.newBuilder()
+                        .setN(8)
+                        .setMax(7)
+                        .setAverage(3.5)
+                        .setStdev(2.29128784747792)
+                        .setQ25(1.75)
+                        .setQ50(3.5)
+                        .setQ75(5.25)
+                        .build())
                 .build();
 
         assertThat(grpc.statistics(input).await().atMost(Duration.ofSeconds(5))).isEqualTo(output);
@@ -64,7 +64,7 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testBuildTsDataSuccess() {
-        var input = BuildTsDataInputDto.newBuilder()
+        var input = BuildTsDataRequestDto.newBuilder()
                 .setId("Example 1")
                 .setGathering(ObsGatheringMapping.toDto(ObsGathering.DEFAULT))
                 .addObservations(BuildTsDataObsDto.newBuilder()
@@ -77,10 +77,9 @@ public class TsFunctionsServiceTest {
                         .build())
                 .build();
 
-        var output = TsFunctionOutputDto.newBuilder()
+        var output = BuildTsDataResponseDto.newBuilder()
                 .setId("Example 1")
-                .setSeries(TsDataMapping.toDto(TsData.of(monthly(2010, 1), DoubleSeq.of(11, 22))))
-                .setStatus(Helpers.ok())
+                .setOk(TsDataMapping.toDto(TsData.of(monthly(2010, 1), DoubleSeq.of(11, 22))))
                 .build();
 
         assertThat(grpc.buildTsData(input).await().atMost(Duration.ofSeconds(5)))
@@ -89,7 +88,7 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testBuildTsDataError() {
-        var input = BuildTsDataInputDto.newBuilder()
+        var input = BuildTsDataRequestDto.newBuilder()
                 .setId("abc")
                 .setGathering(ObsGatheringMapping.toDto(ObsGathering.DEFAULT))
                 .addObservations(BuildTsDataObsDto.newBuilder()
@@ -98,10 +97,9 @@ public class TsFunctionsServiceTest {
                         .build())
                 .build();
 
-        var output = TsFunctionOutputDto.newBuilder()
+        var output = BuildTsDataResponseDto.newBuilder()
                 .setId("abc")
-                .setSeries(TsDataMapping.toDto(TsData.empty("Cannot guess frequency with a single observation")))
-                .setStatus(Helpers.ko("Cannot guess frequency with a single observation"))
+                .setErr(Helpers.err("Cannot guess frequency with a single observation"))
                 .build();
 
         assertThat(grpc.buildTsData(input).await().atMost(Duration.ofSeconds(5)))
@@ -110,24 +108,27 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testBuildTsDataTable() {
-        var input = BuildTsDataTableInputDto.newBuilder()
+        var input = BuildTsDataTableRequestDto.newBuilder()
                 .setId("abc")
                 .setDistributionType(EnumsMapping.toDto(TsDataTable.DistributionType.FIRST))
                 .addCollection(TsDataMapping.toDto(TsData.of(quarterly(2010, 1), DoubleSeq.of(1.1))))
                 .addCollection(TsDataMapping.toDto(TsData.of(monthly(2010, 1), DoubleSeq.of(2.1, 2.2))))
                 .build();
 
-        var output = BuildTsDataTableOutputDto.newBuilder()
+        var output = BuildTsDataTableResponseDto.newBuilder()
                 .setId("abc")
-                .setMatrix(TsMatrixDto.newBuilder()
-                        .setStart(TsPeriodMapping.toDto(parse("2010/P1M")))
-                        .setValues(MatrixDto.newBuilder()
-                                .setNrows(3)
-                                .setNcols(2)
-                                .addAllValues(Arrays.asList(1.1, NaN, NaN, 2.1, 2.2, NaN))
+                .setOk(BuildTsDataTableOutputDto.newBuilder()
+                        .setMatrix(TsMatrixDto.newBuilder()
+                                .setStart(TsPeriodMapping.toDto(parse("2010/P1M")))
+                                .setValues(MatrixDto.newBuilder()
+                                        .setNrows(3)
+                                        .setNcols(2)
+                                        .addAllValues(Arrays.asList(1.1, NaN, NaN, 2.1, 2.2, NaN))
+                                        .build())
                                 .build())
+                        .addAllStatuses(
+                                Arrays.asList(VS_PRESENT, VS_UNUSED, VS_UNUSED, VS_PRESENT, VS_PRESENT, VS_AFTER))
                         .build())
-                .addAllStatuses(Arrays.asList(VS_PRESENT, VS_UNUSED, VS_UNUSED, VS_PRESENT, VS_PRESENT, VS_AFTER))
                 .build();
 
         assertThat(grpc.buildTsDataTable(input).await().atMost(Duration.ofSeconds(5)))
@@ -136,90 +137,93 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testBuildTsDataTableDaily() {
-        var input = BuildTsDataTableInputDto.newBuilder()
+        var input = BuildTsDataTableRequestDto.newBuilder()
                 .setId("abc")
                 .setDistributionType(EnumsMapping.toDto(TsDataTable.DistributionType.FIRST))
                 .addCollection(TsDataMapping.toDto(TsData.of(monthly(2010, 1), DoubleSeq.of(1.1))))
                 .addCollection(TsDataMapping.toDto(TsData.of(daily(2010, 1, 1), DoubleSeq.of(2.1, 2.2))))
                 .build();
 
-        var output = BuildTsDataTableOutputDto.newBuilder()
+        var output = BuildTsDataTableResponseDto.newBuilder()
                 .setId("abc")
-                .setMatrix(TsMatrixDto.newBuilder()
-                        .setStart(TsPeriodMapping.toDto(parse("2010-01/P1D")))
-                        .setValues(MatrixDto.newBuilder()
-                                .setNrows(31)
-                                .setNcols(2)
-                                .addAllValues(Arrays.asList(
-                                        1.1, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
-                                        NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, 2.1,
-                                        2.2, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
-                                        NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN))
+                .setOk(BuildTsDataTableOutputDto.newBuilder()
+                        .setMatrix(TsMatrixDto.newBuilder()
+                                .setStart(TsPeriodMapping.toDto(parse("2010-01/P1D")))
+                                .setValues(MatrixDto.newBuilder()
+                                        .setNrows(31)
+                                        .setNcols(2)
+                                        .addAllValues(Arrays.asList(
+                                                1.1, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
+                                                NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
+                                                NaN, NaN, NaN, 2.1, 2.2, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
+                                                NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN, NaN,
+                                                NaN, NaN, NaN, NaN, NaN, NaN))
+                                        .build())
                                 .build())
+                        .addAllStatuses(Arrays.asList(
+                                VS_PRESENT,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_UNUSED,
+                                VS_PRESENT,
+                                VS_PRESENT,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER,
+                                VS_AFTER))
                         .build())
-                .addAllStatuses(Arrays.asList(
-                        VS_PRESENT,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_UNUSED,
-                        VS_PRESENT,
-                        VS_PRESENT,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER,
-                        VS_AFTER))
                 .build();
 
         assertThat(grpc.buildTsDataTable(input).await().atMost(Duration.ofSeconds(5)))
@@ -228,19 +232,23 @@ public class TsFunctionsServiceTest {
 
     @Test
     public void testBuildTsDataTableEmpty() {
-        var input = BuildTsDataTableInputDto.newBuilder()
+        var input = BuildTsDataTableRequestDto.newBuilder()
                 .setId("abc")
                 .setDistributionType(EnumsMapping.toDto(TsDataTable.DistributionType.FIRST))
                 .build();
 
-        var output = BuildTsDataTableOutputDto.newBuilder()
+        var output = BuildTsDataTableResponseDto.newBuilder()
                 .setId("abc")
-                .setMatrix(TsMatrixDto.newBuilder()
-                        .setStart(TsPeriodMapping.toDto(parse("1970/P1Y")))
-                        .setValues(
-                                MatrixDto.newBuilder().setNrows(0).setNcols(0).build())
+                .setOk(BuildTsDataTableOutputDto.newBuilder()
+                        .setMatrix(TsMatrixDto.newBuilder()
+                                .setStart(TsPeriodMapping.toDto(parse("1970/P1Y")))
+                                .setValues(MatrixDto.newBuilder()
+                                        .setNrows(0)
+                                        .setNcols(0)
+                                        .build())
+                                .build())
+                        .addAllStatuses(List.of())
                         .build())
-                .addAllStatuses(List.of())
                 .build();
 
         assertThat(grpc.buildTsDataTable(input).await().atMost(Duration.ofSeconds(5)))

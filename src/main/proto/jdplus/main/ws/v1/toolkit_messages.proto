@@ -9,6 +9,10 @@ option csharp_namespace = "JDPlus.Main.WS.V1";
 
 message EmptyDto {}
 
+message ErrorDto {
+  string message = 1;
+}
+
 /* Frequency of an event. Only regular frequencies higher or equal to yearly frequency are considered. */
 enum Frequency {
   /* Undefined frequency. To be used when the frequency of an event is unknown. */
@@ -64,11 +68,18 @@ message MatrixDto {
   string id = 10;
 }
 
+message TramoForecastResponseDto {
+  oneof result {
+    TsMatrixDto ok = 1;
+    ErrorDto err = 2;
+  }
+
+  string id = 42;
+}
+
 message TsMatrixDto {
   TsPeriodDto start = 1;
   MatrixDto values = 2;
-
-  string id = 10;
 }
 
 message TsMonikerDto {
@@ -118,45 +129,45 @@ message TimeSelectorDto {
   optional DateDto d1 = 5;
 }
 
-enum ResultStatusType {
-  STATUS_OK = 0;
-  STATUS_ERROR = 1;
-  STATUS_WARNING = 2;
-}
-
-message ResultStatusDto {
-  ResultStatusType type = 1;
-  string message = 2;
-}
-
 /* Default input of TsFunctions (no additional parameter) */
-message TsFunctionInputDto {
+message TsFunctionRequestDto {
   string id = 1;
   TsDataDto series = 2;
 }
 
+message BuildTsDataResponseDto {
+  oneof result {
+    TsDataDto ok = 1;
+    ErrorDto err = 2;
+  }
+
+  string id = 42;
+}
+
 /* Default output of TsFunctions (no additional output) */
-message TsFunctionOutputDto {
-  string id = 1;
-  ResultStatusDto status = 2;
-  TsDataDto series = 3;
+message TsFunctionResponseDto {
+  oneof result {
+    TsDataDto ok = 1;
+    ErrorDto err = 2;
+  }
+
+  string id = 42;
 }
 
 /* Computes the percentage of variation (=[y(t)/y(t-lag)-1]*100) */
-message PctInputDto {
+message PctRequestDto {
   string id = 1;
   TsDataDto series = 2;
   int32 lag = 3;
 }
 
 /* Apply <power> times the difference operator (y[t]-y[t-lag]) */
-message DeltaInputDto {
+message DeltaRequestDto {
   string id = 1;
   TsDataDto series = 2;
   int32 lag = 3;
   int32 power = 4;
 }
-
 
 enum AggregationType {
   AGGREGATION_NONE = 0;
@@ -168,7 +179,7 @@ enum AggregationType {
   AGGREGATION_MIN = 6;
 }
 
-message AggregationInputDto {
+message AggregationRequestDto {
   string id = 1;
   TsDataDto series = 2;
   AggregationType aggregation_type = 3;
@@ -177,23 +188,36 @@ message AggregationInputDto {
   bool complete = 5;
 }
 
-message HodrickPrescottInputDto {
+message HodrickPrescottRequestDto {
   string id = 1;
   TsDataDto series = 2;
   int32 lambda = 3;
 }
 
+message HodrickPrescottResponseDto {
+  oneof result {
+    HodrickPrescottOutputDto ok = 1;
+    ErrorDto err = 2;
+  }
+
+  string id = 42;
+}
+
 message HodrickPrescottOutputDto {
-  string id = 1;
-  ResultStatusDto status = 2;
   TsDataDto trend = 3;
   TsDataDto noise = 4;
 }
 
-message DescriptiveStatisticsDto {
+message DescriptiveStatisticsResponseDto {
+  oneof result {
+    DescriptiveStatisticsDto ok = 1;
+    ErrorDto err = 2;
+  }
 
-  string id = 1;
-  ResultStatusDto status = 2;
+  string id = 42;
+}
+
+message DescriptiveStatisticsDto {
   int32 n = 3;
   int32 nmissing = 4;
   double max = 5;
@@ -218,7 +242,7 @@ message BuildTsDataObsDto {
   double value = 2;
 }
 
-message BuildTsDataInputDto {
+message BuildTsDataRequestDto {
   string id = 1;
   ObsGatheringDto gathering = 2;
   repeated BuildTsDataObsDto observations = 3;
@@ -230,7 +254,7 @@ enum DistributionType {
   DIST_MIDDLE = 2;
 }
 
-message BuildTsDataTableInputDto {
+message BuildTsDataTableRequestDto {
   string id = 1;
   DistributionType distribution_type = 2;
   repeated TsDataDto collection = 3;
@@ -244,10 +268,27 @@ enum ValueStatus {
   VS_EMPTY = 4;
 }
 
+message BuildTsDataTableResponseDto {
+  oneof result {
+    BuildTsDataTableOutputDto ok = 1;
+    ErrorDto err = 2;
+  }
+
+  string id = 42;
+}
+
 message BuildTsDataTableOutputDto {
-  string id = 1;
   TsMatrixDto matrix = 2;
   repeated ValueStatus statuses = 3;
+}
+
+message TemporalDisaggregationResponseDto {
+  oneof result {
+    TemporalDisaggregationResultsDto ok = 1;
+    ErrorDto err = 2;
+  }
+
+  string id = 42;
 }
 
 message TemporalDisaggregationResultsDto {
@@ -403,12 +444,16 @@ message TemporalDisaggregationRequestDto {
   optional int32 n_backcasts = 13;
   optional int32 n_forecasts = 14;
   optional int32 frequency = 15;
+
+  string id = 42;
 }
 
 message VersionInfoDto {
   int32 major = 1;
   int32 minor = 2;
   int32 revision = 3;
+  optional string channel = 4;
+  optional DateDto releaseDate = 5;
 }
 
 message TramoRequestDto {
@@ -420,7 +465,7 @@ message TramoRequestDto {
   int32 n_forecasts = 3;
   optional ModellingContextDto modellingContext = 4;
 
-  string id = 10;
+  string id = 42;
 }
 
 
@@ -794,14 +839,21 @@ message FixedWeekDayDto {
   ValidityPeriodDto validity = 5;
 }
 
+message TramoFullProcessResponseDto {
+  oneof result {
+    TramoOutputDto ok = 1;
+    ErrorDto err = 2;
+  }
+
+  string id = 42;
+}
+
 message TramoOutputDto {
   RegArimaModelDto result = 1;
   TramoSpecDto estimation_spec = 2;
   optional TramoSpecDto result_spec = 3;
   optional ProcessingLogsDto log = 4;
   map<string, ProcessingDetailDto> details = 5;
-
-  string id = 10;
 }
 
 message DoublesDto {
