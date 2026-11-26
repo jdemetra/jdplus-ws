@@ -1,0 +1,22 @@
+version: v2
+lint:
+  use:
+    - STANDARD
+  ignore_only:
+    ENUM_VALUE_PREFIX:
+      - jdplus/main/ws/v1/toolkit_messages.proto
+    ENUM_ZERO_VALUE_SUFFIX:
+      - jdplus/main/ws/v1/toolkit_messages.proto
+    FIELD_LOWER_SNAKE_CASE:
+      - jdplus/main/ws/v1/toolkit_messages.proto
+    PACKAGE_SAME_JAVA_MULTIPLE_FILES:
+      - jdplus/main/ws/v1/toolkit_basic.proto
+      - jdplus/main/ws/v1/toolkit_messages.proto
+    RPC_REQUEST_RESPONSE_UNIQUE:
+      - jdplus/main/ws/v1/toolkit_basic.proto
+    RPC_REQUEST_STANDARD_NAME:
+      - jdplus/main/ws/v1/toolkit_basic.proto
+    RPC_RESPONSE_STANDARD_NAME:
+      - jdplus/main/ws/v1/toolkit_basic.proto
+    SERVICE_SUFFIX:
+      - jdplus/main/ws/v1/toolkit_basic.proto
